@@ -1,9 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
-import requests
 import urllib
-import pandas as pd
-from requests_html import HTML
 from requests_html import HTMLSession
+import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
@@ -12,9 +11,6 @@ app = Flask(__name__)
 def home():
     return render_template("index.html")
 
-# https://www.tripadvisor.com/Attractions-g53449-Activities-a_allAttractions.true-Pittsburgh_Pennsylvania.html
-# https://www.tripadvisor.com/Attractions-g50207-Activities-a_allAttractions.true-Cleveland_Ohio.html
-
 
 @app.route("/search", methods=["POST", "GET"])
 def search():
@@ -22,21 +18,35 @@ def search():
         print(request.form)
         state = request.form["state"]
         city = request.form["city"]
-
         return redirect(url_for("results", state=state, city=city))
     else:
         return render_template("search.html")
 
 
-@app.route("/search/<state>_<city>", methods=["POST", "GET"])
+@app.route("/results/<state>_<city>", methods=["POST", "GET"])
 def results(state, city):
-    url = get_url(state, city)
-    return render_template("results.html", url=url)
+    city = city
+    state = state
+    if request.method == "POST":
+        url_temp = request.form["url"]
+        print(request.form)
+        print(url_temp)
+        if url_temp[0] == "/":
+            print("ahhhhhhhhhhhhhhh")
+            url_temp = url_temp[1:]
+
+        return redirect(url_for("activity", url=url_temp, city=city, state=state))
+    else:
+        url = get_url(state, city)
+        dct = get_things_to_do(url)
+        return render_template("results.html", dct=dct)
 
 
-@app.route("/activity")
-def activity():
-    return render_template("activity.html")
+@app.route("/activity/<state>/<city>/<url>")
+def activity(url, city, state):
+    new_url = "https://www.tripadvisor.com/" + url
+    dct = get_activity_page(new_url, city)
+    return render_template("activity.html", dct=dct, city=city, state=state)
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""
@@ -70,8 +80,6 @@ def scrape_google(query):
 
 def get_url(state, city):
     links = []
-    state = "Ohio"
-    city = "Columbus"
     query = "tripadvisor " + state + " " + city
     subquery = city + " " + state
 
@@ -83,6 +91,93 @@ def get_url(state, city):
     index = valid_url.find(subquery.replace(" ", "_"))
     final_url = valid_url[:index] + "a_allAttractions.true-" + valid_url[index:]
     return final_url
+
+
+def get_things_to_do(url):
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate',
+        'accept-language': 'en,mr;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'}
+
+    req = requests.get(url, headers=headers, timeout=5, verify=False)
+    print(req.status_code)
+    soup = BeautifulSoup(req.content, 'html.parser')
+    lst = []
+    lst2 = []
+    lst3 = []
+    for x in soup.body.find_all(class_="bUshh o csemS"):
+        lst.append(slicer(x.text, " "))
+        print(x.text.replace(" ", "+"))
+        lst3.append(x.text.replace(" ", "+"))
+        if len(lst) == 5:
+            break
+    for x in soup.body.find_all(target="_blank", class_="FmrIP _R w _Z P0 M0 Gm ddFHE"):
+        lst2.append(x['href'])
+        if len(lst2) == 5:
+            break
+    dct = {lst[i]: lst2[i] for i in range(len(lst))}
+    dct["hidden"] = lst3
+    print(dct)
+    return dct
+
+
+def get_activity_page(url, city):
+    headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate',
+        'accept-language': 'en,mr;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'}
+
+    req = requests.get(url, headers=headers, timeout=5, verify=False)
+    soup = BeautifulSoup(req.content, 'html.parser')
+    dct = {}
+    dct["description"] = soup.body.find(class_="pIRBV _T KRIav").text
+    x = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr bTBvn")
+    for i in x:
+        if city in str(i.text):
+            dct["address"] = i.text
+    xxx = soup.find_all(class_="dIDBU MJ")
+    for i in xxx:
+        if city in str(i.text):
+            txt = i.text
+            if "Address" in txt:
+                dct["address"] = txt[7:]
+            else:
+                dct["address"] = i.text
+    xx = soup.find_all(class_="WlYyy diXIH brhTq bQCoY")
+    for i in xx:
+        if "/" in i.text:
+            try:
+                dct["rating"] = slicer(slicer(str(i.text), ":"), ":")
+            except:
+                print("couldnt add ratings")
+    try:
+        dct["hours"] = soup.find(class_="cOXcJ").text
+    except:
+        print("couldnt add hours")
+    try:
+        dct["title"] = soup.find(class_="Xewee").text
+    except:
+        print("couldnt add title")
+    t = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr")
+    for i in t:
+        if "now" in i.text:
+            dct["open/close"] = i.text
+        print(i.text)
+    return dct
+
+
+def slicer(strr, substr):
+    index = strr.find(substr)
+    if index != -1:
+        return strr[index+1:]
 
 
 if __name__ == "__main__":

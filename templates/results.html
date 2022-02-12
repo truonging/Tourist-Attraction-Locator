@@ -2,7 +2,25 @@
 {% block title%}Results Page{% endblock %}
 
 {% block content %}
-<!--<h1>The location you have entered is: {{data}}</h1>-->
+<form class="topleft">
+ <input type="button" value="Back" onclick="history.go(-1)">
+</form>
+{%for i in dct %}
+    {% if i=="hidden" %}
+        <p>{{dct[i]}}</p>
+    {% else %}
+        <div class="center">
+            <form method="post" action="#" class="inline">
+              <input type="hidden" name="name" value={{dct["hidden"][loop.index-1]}}>
+              <button type="submit" name="url" value={{dct[i]}} class="link-button">
+                  {{loop.index}} {{i}}
+              </button>
+            </form>
 
-<h1>{{url}}</h1>
+        </div>
+
+    {% endif %}
+{%endfor%}
+<br>
+<p class="txt">{{dct}}</p>
 {% endblock %}

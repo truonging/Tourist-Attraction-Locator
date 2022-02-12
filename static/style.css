@@ -2,8 +2,38 @@
     vertical-align:middle;
     text-align:center;
 }
-
 .txt {
     font-weight: 600;
     text-align:center;
+}
+.inline {
+  display: inline;
+}
+.link-button {
+  background: none;
+  border: none;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1em;
+  font-family: serif;
+}
+.link-button:focus {
+  outline: none;
+}
+.link-button:active {
+  color:red;
+}
+li{
+  margin: 1.5px;
+}
+.little_left {
+    position: fixed;
+    left: 20px
+}
+.topleft {
+    position: absolute;
+    top: 65px;
+    left: 16px;
+    font-size: 18px;
 }
