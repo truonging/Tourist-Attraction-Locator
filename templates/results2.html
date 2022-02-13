@@ -6,7 +6,7 @@
  <input type="button" value="Back" onclick="history.go(-1)">
 </form>
 
-{% for i in range(5) %}
+{% for i in range(5, 10) %}
     {% for ii in lst[i] %}
         <div class="center">
             <form method="post" action="#" class="inline">
@@ -27,7 +27,7 @@
 </form>
 <form class="prev" action="#" method="post">
     <input type="hidden" name="prev_page" value="True">
-    <button type="button" disabled>Prev Page</button>
+    <input type="button" value="Prev Page" onclick="history.go(-1)">
 </form>
-<h3 class="right_num">Page 1</h3>
+<h3 class="right_num">Page 2</h3>
 {% endblock %}

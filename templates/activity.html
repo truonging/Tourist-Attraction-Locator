@@ -11,10 +11,45 @@
 <h3 class="center">{{dct["open/close"]}}</h3>
 <p class="center">{{dct["address"]}}</p>
 <div class="little_left">
-    <h4>{{dct["rating"]}}</h4>
     <h3>Description:</h3>
     <p>{{dct["description"]}}</p>
-    <h3>Reviews:</h3>
+    <h3>{{dct["reviewamount"]}} Reviews:</h3>
+    <h5>{{dct["rating"]}} Star Rating</h5>
+    <div>
+        <table>
+            <tr><td>Excellent: </td><td>{{dct["rating5"]}}</td></tr>
+            <tr><td>Good: : </td><td>{{dct["rating4"]}}</td></tr>
+            <tr><td>Average: </td><td>{{dct["rating3"]}}</td></tr>
+            <tr><td>Bad: </td><td>{{dct["rating2"]}}</td></tr>
+            <tr><td>Terrible: </td><td>{{dct["rating1"]}}</td></tr>
+        </table>
+    </div>
+    <br>
+    <div class="flex-container">
+        <div class="flex-child magenta">
+            <div class="center">
+                <h5>{{dct["user1"]["name"]}}</h5>
+                <p>{{dct["user1"]["review"]}}</p>
+                <p>{{dct["user1"]["date"]}}</p>
+            </div>
+        </div>
+        <div class="flex-child green">
+            <div class="center">
+                <h5>{{dct["user2"]["name"]}}</h5>
+                <p>{{dct["user2"]["review"]}}</p>
+                <p>{{dct["user2"]["date"]}}</p>
+            </div>
+        </div>
+        <div class="flex-child green">
+            <div class="center">
+                <h5>{{dct["user3"]["name"]}}</h5>
+                <p>{{dct["user3"]["review"]}}</p>
+                <p>{{dct["user3"]["date"]}}</p>
+            </div>
+        </div>
+    </div>
 </div>
-
+<img class="topright" src='/static/images/{{user_image}}' alt="User Image">
+<img class="topright2" src='/static/images/{{user_image2}}' alt="User Image2">
+<img class="topright3" src='/static/images/{{user_image3}}' alt="User Image3">
 {% endblock %}
