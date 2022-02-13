@@ -98,7 +98,10 @@ def activity(url, city, state):
     # calls scraper on tripadvisor and grabs all relevant info to put into dct
     new_url = "https://www.tripadvisor.com/" + url
     dct = get_activity_page(new_url, city)
-    calc_ratings(dct)
+    try:
+        calc_ratings(dct)
+    except:
+        print("couldnt calc_ratings")
     image = [i for i in os.listdir('static/images') if i.endswith('.jpeg')][0]
     image2 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][0]
     image3 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][1]
@@ -204,7 +207,10 @@ def get_activity_page(url, city):
     req = requests.get(url, headers=headers, timeout=5, verify=False)
     soup = BeautifulSoup(req.content, 'html.parser')
     dct = {}
-    dct["description"] = soup.body.find(class_="pIRBV _T KRIav").text
+    try:
+        dct["description"] = soup.body.find(class_="pIRBV _T KRIav").text
+    except:
+        dct["description"] = "No Description Available"
     x = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr bTBvn")
     for i in x:
         if city in str(i.text):
@@ -259,7 +265,14 @@ def get_activity_page(url, city):
         user_num = "user" + str(num)
         count = 0
         user = {}
-        userinfo = soup.find_all(class_="ffbzW _c")[num-1]
+        try:
+            userinfo = soup.find_all(class_="ffbzW _c")[num-1]
+        except:
+            user["review"] = "None"
+            user["date"] = "None"
+            count += 1
+            dct[user_num] = user
+            continue
         user["name"] = userinfo.find(class_="WlYyy cPsXC dTqpp").text
         for i in userinfo:
             if count == 4 and len(i.text) >= 30:
