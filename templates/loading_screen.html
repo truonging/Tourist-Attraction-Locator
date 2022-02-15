@@ -1,0 +1,18 @@
+{% block title %}{% endblock %}
+{% block content %}
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script>
+     window.setTimeout(function(){
+
+       // Move to a new location after 3 secs
+       window.location.href = "http://127.0.0.1:5000/activity/{{state}}/{{city}}/{{url}}";
+
+       }, 3000);
+ </script>
+</head>
+<div class="center">
+<h1 class="center">PLACE AD HERE</h1>
+</div>
+
+{% endblock %}

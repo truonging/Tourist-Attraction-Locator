@@ -22,74 +22,114 @@ def search():
         print("the request form:", request.form)
         state = request.form["state"]
         city = request.form["city"]
-        return redirect(url_for("results", state=state, city=city))
+        return redirect(url_for("results", state=state, city=city, sort="False"))
     else:
         return render_template("search.html")
 
 
-@app.route("/results/Page_1/<state>_<city>", methods=["POST", "GET"])
-def results(state, city):
+@app.route("/results/Page_1/<state>_<city>_<sort>", methods=["POST", "GET"])
+def results(state, city, sort):
     """Results Page after selecting State/City"""
-    # if receieve POST, redirect to activity page the url,city,state
+    # if receive POST, redirect to activity page the url,city,state
     city = city
     state = state
     if request.method == "POST":
         print(request.form)
-        if request.form["next_page"] == "False":
+        if request.form["next_page"] == "True":
+            if sort == "False":
+                return redirect(url_for("results2", city=city, state=state, sort="False"))
+            if sort == "True":
+                return redirect(url_for("results2", city=city, state=state, sort="True"))
+        if request.form["sort_by"] == "True":
+            if sort == "False":
+                return redirect(url_for("results", state=state, city=city, sort="True"))
+            if sort == "True":
+                return redirect(url_for("results", state=state, city=city, sort="False"))
+        else:
             url_temp = request.form["url"]
             print("the request form:", request.form)
             if url_temp[0] == "/":
                 url_temp = url_temp[1:]
-            return redirect(url_for("activity", url=url_temp, city=city, state=state))
-        if request.form["next_page"] == "True":
-            return redirect(url_for("results2", city=city, state=state))
+            return redirect(url_for("loading", url=url_temp, city=city, state=state))
+
+            #return redirect(url_for("activity", url=url_temp, city=city, state=state))
     else:
         # get Tripadvisor url after sending in state/city to google and getting the results, grabs "Things to do" list
         # and return it as a dictionary with activity:url key,value
         url = get_url(state, city)
         dct, lst, lst_title = get_things_to_do(url)
-        print(lst)
-        print(lst_title)
-        return render_template("results.html", dct=dct, lst=lst, lst_title=lst_title)
+        if sort == "False":
+            print("dct: ",dct, "\n")
+            print("lst: ", lst, "\n")
+            print("lst_title: ", lst_title, "\n")
+            return render_template("results.html", dct=dct, lst=lst, lst_title=lst_title)
+        if sort == "True":
+            dct, lst, lst_title = reverse_data(dct, lst, lst_title)
+            return render_template("results.html", dct=dct, lst=lst, lst_title=lst_title)
 
 
-@app.route("/results/Page_2/<state>_<city>", methods=["POST", "GET"])
-def results2(state, city):
+@app.route("/results/Page_2/<state>_<city>_<sort>", methods=["POST", "GET"])
+def results2(state, city, sort):
     city = city
     state = state
     if request.method == "POST":
         print(request.form)
-        if request.form["next_page"] == "False":
-            url_temp = request.form["url"]
-            print("the request form:", request.form)
-            if url_temp[0] == "/":
-                url_temp = url_temp[1:]
-            return redirect(url_for("activity", url=url_temp, city=city, state=state))
         if request.form["next_page"] == "True":
-            return redirect(url_for("results3", city=city, state=state))
-    else:
-        url = get_url(state, city)
-        dct, lst, lst_title = get_things_to_do(url)
-        return render_template("results2.html", dct=dct, lst=lst, lst_title=lst_title)
-
-
-@app.route("/results/Page_3/<state>_<city>", methods=["POST", "GET"])
-def results3(state, city):
-    city = city
-    state = state
-    if request.method == "POST":
-        print(request.form)
-        if request.form["next_page"] == "False":
+            if sort == "False":
+                return redirect(url_for("results3", city=city, state=state, sort="False"))
+            if sort == "True":
+                return redirect(url_for("results3", city=city, state=state, sort="True"))
+        if request.form["sort_by"] == "True":
+            if sort == "False":
+                return redirect(url_for("results2", state=state, city=city, sort="True"))
+            if sort == "True":
+                return redirect(url_for("results2", state=state, city=city, sort="False"))
+        else:
             url_temp = request.form["url"]
             print("the request form:", request.form)
             if url_temp[0] == "/":
                 url_temp = url_temp[1:]
-            return redirect(url_for("activity", url=url_temp, city=city, state=state))
+            return redirect(url_for("loading", url=url_temp, city=city, state=state))
     else:
         url = get_url(state, city)
         dct, lst, lst_title = get_things_to_do(url)
-        return render_template("results3.html", dct=dct, lst=lst, lst_title=lst_title)
+        if sort == "False":
+            return render_template("results2.html", dct=dct, lst=lst, lst_title=lst_title)
+        if sort == "True":
+            dct, lst, lst_title = reverse_data(dct, lst, lst_title)
+            return render_template("results2.html", dct=dct, lst=lst, lst_title=lst_title)
 
+
+@app.route("/results/Page_3/<state>_<city>_<sort>", methods=["POST", "GET"])
+def results3(state, city, sort):
+    city = city
+    state = state
+    if request.method == "POST":
+        print(request.form)
+        if request.form["sort_by"] == "True":
+            if sort == "False":
+                return redirect(url_for("results3", state=state, city=city, sort="True"))
+            if sort == "True":
+                return redirect(url_for("results3", state=state, city=city, sort="False"))
+        else:
+            url_temp = request.form["url"]
+            print("the request form:", request.form)
+            if url_temp[0] == "/":
+                url_temp = url_temp[1:]
+            return redirect(url_for("loading", url=url_temp, city=city, state=state))
+    else:
+        url = get_url(state, city)
+        dct, lst, lst_title = get_things_to_do(url)
+        if sort == "False":
+            return render_template("results3.html", dct=dct, lst=lst, lst_title=lst_title)
+        if sort == "True":
+            dct, lst, lst_title = reverse_data(dct, lst, lst_title)
+            return render_template("results3.html", dct=dct, lst=lst, lst_title=lst_title)
+
+
+@app.route("/loading/<state>/<city>/<url>")
+def loading(url, city, state):
+    return render_template("loading_screen.html", url=url, city=city, state=state)
 
 
 @app.route("/activity/<state>/<city>/<url>")
@@ -110,6 +150,13 @@ def activity(url, city, state):
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""
+
+
+def reverse_data(dct, lst, lst_title):
+    new_dct = dict(reversed(list(dct.items())))
+    lst.reverse()
+    lst_title.reverse()
+    return new_dct, lst, lst_title
 
 
 def get_source(url):
@@ -149,6 +196,7 @@ def get_url(state, city):
     search_results = scrape_google(query)
     for link in search_results:
         if "https://www.tripadvisor.com/Attractions" in link:
+            print(link)
             links.append(link)
     valid_url = str(min(links, key=len))
     index = valid_url.find(subquery.replace(" ", "_"))
@@ -275,6 +323,7 @@ def get_activity_page(url, city):
             continue
         user["name"] = userinfo.find(class_="WlYyy cPsXC dTqpp").text
         for i in userinfo:
+            #(print(count, i.text))
             if count == 4 and len(i.text) >= 30:
                 user["review"] = i.text[:-9]
             if count == 5 and len(i.text) >= 30:
@@ -338,113 +387,3 @@ def calc_ratings(dct):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
-"""
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-    </head>
-    <body>
-       <h1>Home Page! </h1>
-        {% for x in range(10) %}
-            {% if x % 2 == 1 %}
-                <p>{{x}}</p>
-            {% endif %}
-        {% endfor %}
-    </body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-    </head>
-    <body>
-       <h1>Home Page! </h1>
-        {% for x in content %}
-            <p>{{x}}</p>
-            {% if x == "tim" %}
-
-            {% else %}
-
-            {% endif %}
-        {% endfor %}
-    </body>
-</html>
-"""
-
-"""
-<head>
-<title></title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<script type="text/javascript">
-var citiesByState = {
-Alabama: ["Huntsville", "Birmingham", "Montgomery"],
-Alaska: ["Anchorage", "Juneau", "Fairbanks"],
-Arizona: ["Phoenix", "Tucson", "Mesa"],
-Arkansas: ["Little Rock", "Fort Smith", "Fayetteville"],
-California: ["Los Angeles", "San Diego", "San Jose"],
-Colorado: ["Denver", "Colorado Springs", "Aurora"],
-Connecticut: ["Bridgeport", "Stamford", "New Haven"],
-Delaware: ["Wilmington", "Dover", "Newark"],
-Florida: ["Jacksonville", "Miami", "Tampa"],
-Georgia: ["Atlanta", "Columbus", "Augusta"],
-Hawaii: ["Honolulu", "East Honolulu", "Pearl City"],
-Idaho: ["boise", "meridian", "Nampa"],
-Illinois: ["Chicago", "Aurora", "Naperville"],
-Indiana: ["Indianapolis", "Fort Wayne", "Evansville"],
-Iowa: ["Des Moines", "Cedar Rapids", "Davenport"],
-Kansas: ["Wichita", "Overland Park", "Kansas City"],
-Kentucky: ["Louisville", "Lexington", "Bowling Green"],
-Louisiana: ["New Orleans", "Baton Rouge", "Shreveport"],
-Maine: ["Portland", "Lewiston", "Bangor"],
-Maryland: ["Baltimore", "Columbia", "Germantown"],
-Massachusetts: ["Boston", "Worcester", "Springfield"],
-Michigan: ["Detroit", "Grand Rapids", "Warren"],
-Minnesota: ["Minneapolis", "Saint Paul", "Rochester"],
-Mississippi: ["Jackson", "Gulfport", "Southaven"],
-Missouri: ["Kansas City", "Saint Louis", "Springfield"],
-Montana: ["Billings", "Missoula", "Great Falls"],
-Nebraska: ["Omaha", "Lincoln", "Bellevue"],
-Nevada: ["Las Vegas", "Henderson", "Reno"],
-
-}
-function makeSubmenu(value) {
-if(value.length==0) document.getElementById("citySelect").innerHTML = "<option></option>";
-else {
-var citiesOptions = "";
-for(cityId in citiesByState[value]) {
-citiesOptions+="<option>"+citiesByState[value][cityId]+"</option>";
-}
-document.getElementById("citySelect").innerHTML = citiesOptions;
-}
-}
-function displaySelected() { var country = document.getElementById("countrySelect").value;
-var city = document.getElementById("citySelect").value;
-alert(country+"\n"+city);
-}
-function resetSelection() {
-document.getElementById("countrySelect").selectedIndex = 0;
-document.getElementById("citySelect").selectedIndex = 0;
-}
-</script>
-</head>
-<body onload="resetSelection()">
-<select id="countrySelect" size="1" onchange="makeSubmenu(this.value)">
-<option value="" disabled selected>Choose State</option>
-<option>Odisha</option>
-<option>Maharashtra</option>
-<option>Kerala</option>
-</select>
-<select id="citySelect" size="1" >
-<option value="" disabled selected>Choose City</option>
-<option></option>
-</select>
-<button onclick="displaySelected()">show selected</button>
-"""

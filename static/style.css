@@ -66,6 +66,11 @@
     top: 835x;
     right: 1010px;
 }
+.sort {
+    position: fixed;
+    top: 835x;
+    right: 1110px;
+}
 .flex-container {
     display: flex;
 }

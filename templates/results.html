@@ -11,6 +11,7 @@
         <div class="center">
             <form method="post" action="#" class="inline">
                 <input type="hidden" name="next_page" value="False">
+                <input type="hidden" name="sort_by" value="False">
                 <input type="hidden" name="name" value={{dct["hidden"][loop.index-1]}}>
                 <button type="submit" name="url" value={{lst[i][ii]}} class="link-button">
                     {{lst_title[i]}}
@@ -21,13 +22,23 @@
 {% endfor %}
 
 <br>
+
 <form class="right" action="#" method="post">
     <input type="hidden" name="next_page" value="True">
+    <input type="hidden" name="sort_by" value="False">
     <input type="submit" value="Next Page"/>
 </form>
+
 <form class="prev" action="#" method="post">
     <input type="hidden" name="prev_page" value="True">
     <button type="button" disabled>Prev Page</button>
 </form>
+
 <h3 class="right_num">Page 1</h3>
+
+<form class="sort" action="#" method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO SORT?');">
+    <input type="hidden" name="next_page" value="False">
+    <input type="hidden" name="sort_by" value="True">
+    <input type="submit" value="Sort by Ranking"/>
+</form>
 {% endblock %}
