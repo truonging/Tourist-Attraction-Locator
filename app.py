@@ -27,6 +27,11 @@ def search():
         return render_template("search.html")
 
 
+@app.route("/owned_activities", methods=["POST", "GET"])
+def owned_activities():
+    return render_template("owned_activities.html")
+
+
 @app.route("/results/Page_1/<state>_<city>_<sort>", methods=["POST", "GET"])
 def results(state, city, sort):
     """Results Page after selecting State/City"""
