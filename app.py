@@ -47,7 +47,6 @@ def results(state, city, sort):
                 return redirect(url_for("results", state=state, city=city, sort="False"))
         else:
             url_temp = request.form["url"]
-            print("the request form:", request.form)
             if url_temp[0] == "/":
                 url_temp = url_temp[1:]
             return redirect(url_for("loading", url=url_temp, city=city, state=state))
@@ -59,9 +58,6 @@ def results(state, city, sort):
         url = get_url(state, city)
         dct, lst, lst_title = get_things_to_do(url)
         if sort == "False":
-            print("dct: ",dct, "\n")
-            print("lst: ", lst, "\n")
-            print("lst_title: ", lst_title, "\n")
             return render_template("results.html", dct=dct, lst=lst, lst_title=lst_title)
         if sort == "True":
             dct, lst, lst_title = reverse_data(dct, lst, lst_title)
@@ -86,7 +82,6 @@ def results2(state, city, sort):
                 return redirect(url_for("results2", state=state, city=city, sort="False"))
         else:
             url_temp = request.form["url"]
-            print("the request form:", request.form)
             if url_temp[0] == "/":
                 url_temp = url_temp[1:]
             return redirect(url_for("loading", url=url_temp, city=city, state=state))
@@ -113,7 +108,6 @@ def results3(state, city, sort):
                 return redirect(url_for("results3", state=state, city=city, sort="False"))
         else:
             url_temp = request.form["url"]
-            print("the request form:", request.form)
             if url_temp[0] == "/":
                 url_temp = url_temp[1:]
             return redirect(url_for("loading", url=url_temp, city=city, state=state))
@@ -190,17 +184,19 @@ def scrape_google(query):
 def get_url(state, city):
     """Grabs the right tripadvisor url that leads to "To do page" and not the 2nd page url"""
     links = []
-    query = "tripadvisor " + state + " " + city
+    query = "https://www.tripadvisor.com/Attractions " + state + " " + city
     subquery = city + " " + state
 
     search_results = scrape_google(query)
     for link in search_results:
         if "https://www.tripadvisor.com/Attractions" in link:
-            print(link)
-            links.append(link)
+            if state.replace(" ", "_") in link:
+                if city.replace(" ", "_") in link:
+                    links.append(link)
     valid_url = str(min(links, key=len))
     index = valid_url.find(subquery.replace(" ", "_"))
     final_url = valid_url[:index] + "a_allAttractions.true-" + valid_url[index:]
+    print(final_url)
     return final_url
 
 
@@ -272,7 +268,6 @@ def get_activity_page(url, city):
                 dct["address"] = txt[7:]
             else:
                 dct["address"] = i.text
-
     xx = soup.find_all(class_="WlYyy diXIH brhTq bQCoY")
     for i in xx:
         if "/" in i.text:
