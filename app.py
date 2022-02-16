@@ -31,94 +31,45 @@ def search():
 def results(state, city, sort):
     """Results Page after selecting State/City"""
     # if receive POST, redirect to activity page the url,city,state
-    city = city
-    state = state
+    data = (state, city, sort, "results")
     if request.method == "POST":
         print(request.form)
         if request.form["next_page"] == "True":
-            if sort == "False":
-                return redirect(url_for("results2", city=city, state=state, sort="False"))
-            if sort == "True":
-                return redirect(url_for("results2", city=city, state=state, sort="True"))
+            return next_page(data, "2")
         if request.form["sort_by"] == "True":
-            if sort == "False":
-                return redirect(url_for("results", state=state, city=city, sort="True"))
-            if sort == "True":
-                return redirect(url_for("results", state=state, city=city, sort="False"))
+            return sort_page(data)
         else:
-            url_temp = request.form["url"]
-            if url_temp[0] == "/":
-                url_temp = url_temp[1:]
-            return redirect(url_for("loading", url=url_temp, city=city, state=state))
-
-            #return redirect(url_for("activity", url=url_temp, city=city, state=state))
+            return loading_page(data)
     else:
-        # get Tripadvisor url after sending in state/city to google and getting the results, grabs "Things to do" list
-        # and return it as a dictionary with activity:url key,value
-        url = get_url(state, city)
-        dct, lst, lst_title = get_things_to_do(url)
-        if sort == "False":
-            return render_template("results.html", dct=dct, lst=lst, lst_title=lst_title)
-        if sort == "True":
-            dct, lst, lst_title = reverse_data(dct, lst, lst_title)
-            return render_template("results.html", dct=dct, lst=lst, lst_title=lst_title)
+        return result_page(data)
 
 
 @app.route("/results/Page_2/<state>_<city>_<sort>", methods=["POST", "GET"])
 def results2(state, city, sort):
-    city = city
-    state = state
+    data = (state, city, sort, "results2")
     if request.method == "POST":
         print(request.form)
         if request.form["next_page"] == "True":
-            if sort == "False":
-                return redirect(url_for("results3", city=city, state=state, sort="False"))
-            if sort == "True":
-                return redirect(url_for("results3", city=city, state=state, sort="True"))
+            return next_page(data, "3")
         if request.form["sort_by"] == "True":
-            if sort == "False":
-                return redirect(url_for("results2", state=state, city=city, sort="True"))
-            if sort == "True":
-                return redirect(url_for("results2", state=state, city=city, sort="False"))
+            return sort_page(data)
         else:
-            url_temp = request.form["url"]
-            if url_temp[0] == "/":
-                url_temp = url_temp[1:]
-            return redirect(url_for("loading", url=url_temp, city=city, state=state))
+            return loading_page(data)
     else:
-        url = get_url(state, city)
-        dct, lst, lst_title = get_things_to_do(url)
-        if sort == "False":
-            return render_template("results2.html", dct=dct, lst=lst, lst_title=lst_title)
-        if sort == "True":
-            dct, lst, lst_title = reverse_data(dct, lst, lst_title)
-            return render_template("results2.html", dct=dct, lst=lst, lst_title=lst_title)
+        return result_page(data)
 
 
 @app.route("/results/Page_3/<state>_<city>_<sort>", methods=["POST", "GET"])
 def results3(state, city, sort):
-    city = city
-    state = state
+    data = (state, city, sort, "results3")
     if request.method == "POST":
         print(request.form)
         if request.form["sort_by"] == "True":
-            if sort == "False":
-                return redirect(url_for("results3", state=state, city=city, sort="True"))
-            if sort == "True":
-                return redirect(url_for("results3", state=state, city=city, sort="False"))
+            return sort_page(data)
         else:
-            url_temp = request.form["url"]
-            if url_temp[0] == "/":
-                url_temp = url_temp[1:]
-            return redirect(url_for("loading", url=url_temp, city=city, state=state))
+            return loading_page(data)
     else:
-        url = get_url(state, city)
-        dct, lst, lst_title = get_things_to_do(url)
-        if sort == "False":
-            return render_template("results3.html", dct=dct, lst=lst, lst_title=lst_title)
-        if sort == "True":
-            dct, lst, lst_title = reverse_data(dct, lst, lst_title)
-            return render_template("results3.html", dct=dct, lst=lst, lst_title=lst_title)
+        return result_page(data)
 
 
 @app.route("/loading/<state>/<city>/<url>")
@@ -141,6 +92,46 @@ def activity(url, city, state):
     image3 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][1]
     return render_template("activity.html", dct=dct, city=city, state=state,
                            user_image=image, user_image2=image2, user_image3=image3)
+
+
+def next_page(data, num):
+    state, city, sort, result = data
+    result = ''.join([i for i in result if not i.isdigit()])
+    result = result + num
+    if sort == "False":
+        return redirect(url_for(result, city=city, state=state, sort="False"))
+    if sort == "True":
+        return redirect(url_for(result, city=city, state=state, sort="True"))
+
+
+def sort_page(data):
+    state, city, sort, result = data
+    if sort == "False":
+        return redirect(url_for(result, state=state, city=city, sort="True"))
+    if sort == "True":
+        return redirect(url_for(result, state=state, city=city, sort="False"))
+
+
+def loading_page(data):
+    state, city, sort, result = data
+    url_temp = request.form["url"]
+    if url_temp[0] == "/":
+        url_temp = url_temp[1:]
+    return redirect(url_for("loading", url=url_temp, city=city, state=state))
+
+
+def result_page(data):
+    # get Tripadvisor url after sending in state/city to google and getting the results, grabs "Things to do" list
+    # and return it as a dictionary with activity:url key,value
+    state, city, sort, result = data
+    url = get_url(state, city)
+    dct, lst, lst_title = get_things_to_do(url)
+    result = result + ".html"
+    if sort == "False":
+        return render_template(result, dct=dct, lst=lst, lst_title=lst_title)
+    if sort == "True":
+        dct, lst, lst_title = reverse_data(dct, lst, lst_title)
+        return render_template(result, dct=dct, lst=lst, lst_title=lst_title)
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""
@@ -353,10 +344,12 @@ def slicer_chars(s):
             return new_str
     return s
 
+
 def slicer_lname(s, substr):
     index = s.find(substr)
     if index != -1:
         return s[:index+2]
+
 
 def slicer_chars_after(s):
     for i, c in enumerate(s):
