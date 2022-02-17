@@ -1,3 +1,10 @@
+.codeContainer {
+    display: block;
+}
+
+.code {
+    display:inline-block;width:auto;border:1px solid blue;border-left:10px solid #ccc;background:#eee;padding:5px;margin:5px;
+}
 .center {
     vertical-align:middle;
     text-align:center;
@@ -84,9 +91,4 @@
 }
 .flex-child:second-child {
     margin-right: 15px;
-}
-
-.test{
-    height:200px;
-    width:200px;
 }

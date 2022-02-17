@@ -4,14 +4,52 @@ from requests_html import HTMLSession
 import requests
 from bs4 import BeautifulSoup
 import os
+import mysql.connector
 
 app = Flask(__name__)
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="Rtruong3990",
+    database="361_project"
+)
+
+"""
+mycursor = mydb.cursor()
+sql = "INSERT INTO activities (title, address, reviewAmount, rating, description) VALUES (%s, %s)"
+val = [
+    ("San Diego Zoo", "Zoo address 1003", "34,251", "4.52", "Place is a zoo"),
+    ("Getty Boo", "Getty 145 129 dr.", "1,215", "4.12", "Forget the description"),
+    ("Burgatory", "Pittsburgh somewhere", "10,124", "4.99", "Best burger place")]
+
+if one:
+    mycursor.execute(sql, val)
+elif multiple:
+    mycursor.executemany(sql,val)
+mydb.commit()
+print(mycursor.rowcount, "was inserted.")
+"""
 
 
 @app.route("/")
 def home():
     """Home Page"""
     return render_template("index.html")
+
+
+@app.route("/owned_activities", methods=["POST", "GET"])
+def owned_activities():
+    mycursor = mydb.cursor(dictionary=True)
+    query = "SELECT * FROM activities"
+    mycursor.execute(query)
+    result = mycursor.fetchall()
+    mycursor.close()
+    for x in result:
+        print(x["title"])
+        print(x["address"])
+        print(x["rating"])
+        print(x["description"])
+    return render_template("owned_activities.html", database=result)
 
 
 @app.route("/search", methods=["POST", "GET"])
@@ -25,11 +63,6 @@ def search():
         return redirect(url_for("results", state=state, city=city, sort="False"))
     else:
         return render_template("search.html")
-
-
-@app.route("/owned_activities", methods=["POST", "GET"])
-def owned_activities():
-    return render_template("owned_activities.html")
 
 
 @app.route("/results/Page_1/<state>_<city>_<sort>", methods=["POST", "GET"])
@@ -82,12 +115,22 @@ def loading(url, city, state):
     return render_template("loading_screen.html", url=url, city=city, state=state)
 
 
-@app.route("/activity/<state>/<city>/<url>")
+@app.route("/activity/<state>/<city>/<url>", methods=["POST", "GET"])
 def activity(url, city, state):
     """Activity Page after selecting an activity from the list"""
     # calls scraper on tripadvisor and grabs all relevant info to put into dct
     new_url = "https://www.tripadvisor.com/" + url
     dct = get_activity_page(new_url, city)
+    if request.method == "POST":
+        if request.form["save_activity"] == "True":
+            mycursor = mydb.cursor()
+            sql = "INSERT INTO activities (title, address, reviewAmount, rating, description) VALUES (%s,%s,%s,%s,%s)"
+            val = save_activity_data(dct)
+            print(val)
+            mycursor.execute(sql, val)
+            print(mycursor.rowcount, "was inserted.")
+            mydb.commit()
+            mycursor.close()
     try:
         calc_ratings(dct)
     except:
@@ -97,7 +140,7 @@ def activity(url, city, state):
     image3 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][1]
     return render_template("activity.html", dct=dct, city=city, state=state,
                            user_image=image, user_image2=image2, user_image3=image3)
-
+                            # YOU CAN PROBABLY DELETE CITY AND STATE NOT USED IN HTML. TOO TIRED TO DO IT RN
 
 def next_page(data, num):
     state, city, sort, result = data
@@ -140,6 +183,22 @@ def result_page(data):
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""
+
+
+def save_activity_data(dct):
+    calc_ratings(dct)
+    title = dct["title"]
+    try:
+        address = dct["address"]
+    except:
+        address = "Not Available"
+    reviewAmount = dct["reviewamount"]
+    rating = dct["rating"]
+    try:
+        description = dct["description"]
+    except:
+        description = "Not Available"
+    return title, address, reviewAmount, rating, description
 
 
 def reverse_data(dct, lst, lst_title):

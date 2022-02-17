@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title%}Saved Activities Page{% endblock %}
+{% block content %}
+<body>
+    <div class="center">
+        <h2>View all your saved activities here.</h2>
+        {% for activity in database[::-1] %}
+        <div style="border-radius: 25px;width: 50%;display: inline-block;margin: 15px;text-align:center;padding:1px;box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px, rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;">
+            <div style="width:90%;text-align:center;padding:2px;margin:0 auto;">
+                <h4 style="font-size:2vw;">{{activity["title"]}}</h4>
+                <p>{{activity["address"]}}</p>
+                <p>{{activity["reviewAmount"]}} Reviews | Star Rating: {{activity["rating"]}}</p>
+                <p>{{activity["description"]}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+{% endblock %}

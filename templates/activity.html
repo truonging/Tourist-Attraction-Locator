@@ -4,12 +4,16 @@
 <form class="topleft">
  <input type="button" value="Back" onclick="history.go(-2)">
 </form>
-
 <h1 class="center">{{dct["title"]}}</h1>
-
 <h2 class="center">Open Hours: {{dct["hours"]}}</h2>
 <h3 class="center">{{dct["open/close"]}}</h3>
 <p class="center">{{dct["address"]}}</p>
+<div class="center">
+    <form action="#" method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO SAVE?');">
+        <input type="hidden" name="save_activity" value="True"/>
+        <input type="submit" value="Save Activity"/>
+    </form>
+</div>
 <div class="little_left">
     <h3>Description:</h3>
     <p>{{dct["description"]}}</p>
