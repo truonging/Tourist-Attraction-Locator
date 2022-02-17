@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
+from flask_fontawesome import FontAwesome
 import urllib
 from requests_html import HTMLSession
 import requests
@@ -7,28 +8,13 @@ import os
 import mysql.connector
 
 app = Flask(__name__)
+fa = FontAwesome(app)
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
     password="Rtruong3990",
     database="361_project"
 )
-
-"""
-mycursor = mydb.cursor()
-sql = "INSERT INTO activities (title, address, reviewAmount, rating, description) VALUES (%s, %s)"
-val = [
-    ("San Diego Zoo", "Zoo address 1003", "34,251", "4.52", "Place is a zoo"),
-    ("Getty Boo", "Getty 145 129 dr.", "1,215", "4.12", "Forget the description"),
-    ("Burgatory", "Pittsburgh somewhere", "10,124", "4.99", "Best burger place")]
-
-if one:
-    mycursor.execute(sql, val)
-elif multiple:
-    mycursor.executemany(sql,val)
-mydb.commit()
-print(mycursor.rowcount, "was inserted.")
-"""
 
 
 @app.route("/")
@@ -39,16 +25,24 @@ def home():
 
 @app.route("/owned_activities", methods=["POST", "GET"])
 def owned_activities():
+    """Page that dynamically displays user saved activities from mysqldb and lets users delete activity from table"""
+    if request.method == "POST":
+        print(request.form)
+        if request.form["action"] == "delete":
+            ID = request.form["ID"]
+            mycursor = mydb.cursor()
+            sql = f"DELETE FROM activities WHERE ID = '{ID}'"
+            mycursor.execute(sql)
+            mydb.commit()
+            print(mycursor.rowcount, "record(s) deleted")
+            mycursor.close()
+        if request.form["action"] == "go_to_activity":
+            pass
     mycursor = mydb.cursor(dictionary=True)
     query = "SELECT * FROM activities"
     mycursor.execute(query)
     result = mycursor.fetchall()
     mycursor.close()
-    for x in result:
-        print(x["title"])
-        print(x["address"])
-        print(x["rating"])
-        print(x["description"])
     return render_template("owned_activities.html", database=result)
 
 
@@ -112,6 +106,7 @@ def results3(state, city, sort):
 
 @app.route("/loading/<state>/<city>/<url>")
 def loading(url, city, state):
+    """Loading page for ad placement"""
     return render_template("loading_screen.html", url=url, city=city, state=state)
 
 
@@ -124,10 +119,10 @@ def activity(url, city, state):
     if request.method == "POST":
         if request.form["save_activity"] == "True":
             mycursor = mydb.cursor()
-            sql = "INSERT INTO activities (title, address, reviewAmount, rating, description) VALUES (%s,%s,%s,%s,%s)"
-            val = save_activity_data(dct)
-            print(val)
+            sql = "INSERT INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            val = save_activity_data(dct, city, state, url)
             mycursor.execute(sql, val)
+            print(val)
             print(mycursor.rowcount, "was inserted.")
             mydb.commit()
             mycursor.close()
@@ -143,6 +138,7 @@ def activity(url, city, state):
                             # YOU CAN PROBABLY DELETE CITY AND STATE NOT USED IN HTML. TOO TIRED TO DO IT RN
 
 def next_page(data, num):
+    """Loads next page depending on if user clicked sort button or not"""
     state, city, sort, result = data
     result = ''.join([i for i in result if not i.isdigit()])
     result = result + num
@@ -153,6 +149,7 @@ def next_page(data, num):
 
 
 def sort_page(data):
+    """Loads current page depending if user clicked sort button or not"""
     state, city, sort, result = data
     if sort == "False":
         return redirect(url_for(result, state=state, city=city, sort="True"))
@@ -161,6 +158,7 @@ def sort_page(data):
 
 
 def loading_page(data):
+    """Takes user to loading page that waits 5 seconds, passes data to activity page"""
     state, city, sort, result = data
     url_temp = request.form["url"]
     if url_temp[0] == "/":
@@ -185,7 +183,8 @@ def result_page(data):
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""
 
 
-def save_activity_data(dct):
+def save_activity_data(dct, city, state, url):
+    """Turn dictionary data into tuple"""
     calc_ratings(dct)
     title = dct["title"]
     try:
@@ -198,10 +197,11 @@ def save_activity_data(dct):
         description = dct["description"]
     except:
         description = "Not Available"
-    return title, address, reviewAmount, rating, description
+    return title, address, reviewAmount, rating, description, city, state, url
 
 
 def reverse_data(dct, lst, lst_title):
+    """Reverse all the given data"""
     new_dct = dict(reversed(list(dct.items())))
     lst.reverse()
     lst_title.reverse()

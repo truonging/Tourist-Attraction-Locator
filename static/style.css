@@ -1,3 +1,33 @@
+.delbut {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  font-size: 18px;
+}
+
+.btn {
+  background-color: DodgerBlue; /* Blue background */
+  border: none; /* Remove borders */
+  color: white; /* White text */
+  font-size: 16px; /* Set a font size */
+  cursor: pointer; /* Mouse pointer on hover */
+}
+
+/* Darker background on mouse-over */
+.btn:hover {
+  background-color: RoyalBlue;
+}
+
+.button-container form,
+.button-container form div {
+    display: inline;
+}
+
+.button-container button {
+    display: inline;
+    vertical-align: middle;
+}
+
 .codeContainer {
     display: block;
 }
@@ -33,6 +63,25 @@
 .link-button:active {
   color:red;
 }
+
+.link-button2 {
+  background: none;
+  border: none;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1em;
+  font-family: serif;
+  height:75px;
+  font-size: 20px;
+}
+.link-button2:focus {
+  outline: none;
+}
+.link-button2:active {
+  color:red;
+}
+
 .little_left {
     position: fixed;
     left: 15px;
