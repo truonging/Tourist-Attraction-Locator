@@ -14,19 +14,34 @@
         <input type="submit" value="Save Activity"/>
     </form>
 </div>
-<div class="little_left">
-    <h3>Description:</h3>
-    <p>{{dct["description"]}}</p>
-    <h3>{{dct["reviewamount"]}} Reviews:</h3>
-    <h5>{{dct["rating"]}} Star Rating</h5>
+<div class="little_left" style="border: 1px solid black;">
     <div>
-        <table>
-            <tr><td>Excellent: </td><td>{{dct["rating5"]}}</td></tr>
-            <tr><td>Good: : </td><td>{{dct["rating4"]}}</td></tr>
-            <tr><td>Average: </td><td>{{dct["rating3"]}}</td></tr>
-            <tr><td>Bad: </td><td>{{dct["rating2"]}}</td></tr>
-            <tr><td>Terrible: </td><td>{{dct["rating1"]}}</td></tr>
-        </table>
+        <h3>Description:</h3>
+        <p>{{dct["description"]}}</p>
+    </div>
+    <div style="display: flex;border: 1px solid red;">
+        <div class="item" style="width:25%;border: 2px solid black;">
+            <div>
+                <h3>{{dct["reviewamount"]}} Reviews:</h3>
+                <h5>{{dct["rating"]}} Star Rating</h5>
+            </div>
+            <div>
+                <table>
+                    <tr><td>Excellent: </td><td>{{dct["rating5"]}}</td></tr>
+                    <tr><td>Good: : </td><td>{{dct["rating4"]}}</td></tr>
+                    <tr><td>Average: </td><td>{{dct["rating3"]}}</td></tr>
+                    <tr><td>Bad: </td><td>{{dct["rating2"]}}</td></tr>
+                    <tr><td>Terrible: </td><td>{{dct["rating1"]}}</td></tr>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="item">
+            <h3>TEST</h3>
+        </div>
+
+
     </div>
     <br>
     <div class="flex-container">

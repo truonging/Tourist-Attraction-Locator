@@ -1,3 +1,4 @@
+
 .delbut {
   position: absolute;
   top: 8px;
@@ -6,9 +7,8 @@
 }
 
 .btn {
-  background-color: DodgerBlue; /* Blue background */
-  border: none; /* Remove borders */
-  color: white; /* White text */
+  border: 1px solid black; /* Remove borders */
+  color: black; /* White text */
   font-size: 16px; /* Set a font size */
   cursor: pointer; /* Mouse pointer on hover */
 }
@@ -140,4 +140,9 @@
 }
 .flex-child:second-child {
     margin-right: 15px;
+}
+
+.item {
+  flex-basis: 100px;
+  margin: 5px;
 }

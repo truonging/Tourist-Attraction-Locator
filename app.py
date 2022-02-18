@@ -36,7 +36,14 @@ def owned_activities():
             mydb.commit()
             print(mycursor.rowcount, "record(s) deleted")
             mycursor.close()
-        if request.form["action"] == "go_to_activity":
+        elif request.form["action"] == "go_to_activity":
+            ID = request.form["ID"]
+            mycursor = mydb.cursor()
+            sql = f"SELECT city, state, url FROM activities WHERE ID = '{ID}'"
+            mycursor.execute(sql)
+            city, state, url = mycursor.fetchone()
+            return redirect(url_for("activity", city=city, state=state, url=url))
+
             pass
     mycursor = mydb.cursor(dictionary=True)
     query = "SELECT * FROM activities"
@@ -119,7 +126,7 @@ def activity(url, city, state):
     if request.method == "POST":
         if request.form["save_activity"] == "True":
             mycursor = mydb.cursor()
-            sql = "INSERT INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
             val = save_activity_data(dct, city, state, url)
             mycursor.execute(sql, val)
             print(val)

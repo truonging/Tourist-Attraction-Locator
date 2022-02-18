@@ -13,19 +13,19 @@
                 <p>{{activity["reviewAmount"]}} Reviews | Star Rating: {{activity["rating"]}} </p>
                 <p>{{activity["description"]}}</p>
                 <div style="display:flex;">
-                    <form method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO DELETE?');">
-                        <table style="display: inline-block;text-align:center;">
+                    <form method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO DELETE?');" style="margin: auto; width: 60px;">
+                        <table>
                             <tr>
                                 <td><input type="hidden" name="ID" value="{{activity['ID']}}"></td>
                                 <td><button type="submit" class="btn" name="action" value="delete"><i class="fa fa-trash fa-2x"></i></button></td>
                             </tr>
                         </table>
                     </form>
-                    <form method="post">
-                        <table style="display: inline-block;">
+                    <form method="post" style="margin: auto; width: 150px;">
+                        <table>
                             <tr>
                                 <td><input type="hidden" name="ID" value="{{activity['ID']}}"></td>
-                                <td><button type="submit" class="link-button2" name="action" value="go_to_activity">Visit the Activity Page</button></td>
+                                <td><button type="submit" name="action" value="go_to_activity" style="font: bold 14px Arial;font-size: 20px;">Visit Activity</button></td>
                             </tr>
                         </table>
                     </form>
