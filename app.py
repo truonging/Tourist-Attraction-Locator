@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import mysql.connector
+from datetime import date
 
 app = Flask(__name__)
 fa = FontAwesome(app)
@@ -42,9 +43,9 @@ def owned_activities():
             sql = f"SELECT city, state, url FROM activities WHERE ID = '{ID}'"
             mycursor.execute(sql)
             city, state, url = mycursor.fetchone()
+            mycursor.close()
             return redirect(url_for("activity", city=city, state=state, url=url))
 
-            pass
     mycursor = mydb.cursor(dictionary=True)
     query = "SELECT * FROM activities"
     mycursor.execute(query)
@@ -124,12 +125,24 @@ def activity(url, city, state):
     new_url = "https://www.tripadvisor.com/" + url
     dct = get_activity_page(new_url, city)
     if request.method == "POST":
+        print(request.form)
         if request.form["save_activity"] == "True":
             mycursor = mydb.cursor()
             sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
             val = save_activity_data(dct, city, state, url)
             mycursor.execute(sql, val)
-            print(val)
+            print(mycursor.rowcount, "was inserted.")
+            mydb.commit()
+            mycursor.close()
+        elif request.form["write_review"] == "True":
+            name = request.form["name"]
+            review = request.form["review"]
+            today = date.today()
+            review_date = today.strftime("%B %d, %Y")
+            review_date = "Written " + review_date
+            mycursor = mydb.cursor()
+            sql = "INSERT INTO user_reviews (name, review_date, review, url) VALUES (%s,%s,%s,%s)"
+            mycursor.execute(sql, (name, review_date, review, new_url))
             print(mycursor.rowcount, "was inserted.")
             mydb.commit()
             mycursor.close()
@@ -137,6 +150,28 @@ def activity(url, city, state):
         calc_ratings(dct)
     except:
         print("couldnt calc_ratings")
+
+    # check if new_url in mysql url
+    mycursor = mydb.cursor(dictionary=True)
+    sql = f"SELECT * FROM user_reviews WHERE url = '{new_url}'"
+    mycursor.execute(sql)
+    result = mycursor.fetchall()
+    mycursor.close()
+    if len(result) >= 1:
+        dct["user3"] = dct["user2"]
+        dct["user2"] = dct["user1"]
+        count = 1
+        for x in result:
+            if count == 4:
+                break
+            if count == 1:
+                dct["user1"] = {"name": x["name"], "review": x["review"], "date": x["review_date"]}
+            elif count >= 2:
+                dct["user3"] = dct["user2"]
+                dct["user2"] = dct["user1"]
+                dct["user1"] = {"name": x["name"], "review": x["review"], "date": x["review_date"]}
+            count += 1
+
     image = [i for i in os.listdir('static/images') if i.endswith('.jpeg')][0]
     image2 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][0]
     image3 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][1]

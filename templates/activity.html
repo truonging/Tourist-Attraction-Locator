@@ -10,17 +10,18 @@
 <p class="center">{{dct["address"]}}</p>
 <div class="center">
     <form method="post">
+        <input type="hidden" name="write_review" value="False"/>
         <input type="hidden" name="save_activity" value="True"/>
         <input type="submit" value="Save Activity"/>
     </form>
 </div>
-<div class="little_left" style="border: 1px solid black;">
+<div class="little_left">
     <div>
         <h3>Description:</h3>
         <p>{{dct["description"]}}</p>
     </div>
-    <div style="display: flex;border: 1px solid red;">
-        <div class="item" style="width:25%;border: 2px solid black;">
+    <div style="display: flex;">
+        <div class="item" style="width:25%;">
             <div>
                 <h3>{{dct["reviewamount"]}} Reviews:</h3>
                 <h5>{{dct["rating"]}} Star Rating</h5>
@@ -37,8 +38,17 @@
         </div>
 
 
-        <div class="item">
-            <h3>TEST</h3>
+        <div class="item" style="position:relative;left:110px;">
+            <h3 class="center" style="position:relative;right:80px;">Write Your Own Review</h3>
+            <form method="post">
+                <input type="hidden" name="save_activity" value="False"/>
+                <input type="hidden" name="write_review" value="True"/>
+                <div class="center" style="position:relative;right:80px;">
+                    <input type="text" class="center" id="name" name="name" placeholder="Enter Your Username"><br>
+                </div>
+                <textarea id="review" name="review" rows="5" cols="100" style="position: relative;top:10px;" placeholder="Write Your Review Here..."></textarea>
+                <input type="submit" value="Submit Review">
+            </form>
         </div>
 
 
