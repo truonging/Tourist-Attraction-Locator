@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_fontawesome import FontAwesome
-import os
-import mysql.connector
-from datetime import date
+from flask_fontawesome import FontAwesome   # used delete font
+from datetime import date  # used to grab the current date if user submits review
+import os   # used to grab images from static
+import mysql.connector  # used to connect to MYSQL DB
 import backend as b
 
 

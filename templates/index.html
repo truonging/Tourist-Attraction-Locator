@@ -1,9 +1,148 @@
 {% extends "base.html" %}
 {% block title %}Home Page{% endblock %}
 {% block content %}
-<h1 class="center">Home Page</h1>
-<p class="center">Welcome to my Tourist Attraction Locator app. Continue to the <a href="/search">search page</a>
-    to lookup attractions near you!</p>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript">
+var citiesByState2 = {
+Alabama: ["Huntsville", "Birmingham", "Montgomery"],
+Alaska: ["Anchorage", "Juneau", "Fairbanks"],
+Arizona: ["Phoenix", "Tucson", "Mesa"],
+Arkansas: ["Little Rock", "Fort Smith", "Fayetteville"],
+California: ["Los Angeles", "San Diego", "San Jose"],
+Colorado: ["Denver", "Colorado Springs", "Aurora"],
+Connecticut: ["Bridgeport", "Stamford", "New Haven"],
+Delaware: ["Wilmington", "Dover", "Newark"],
+Florida: ["Jacksonville", "Miami", "Tampa"],
+Georgia: ["Atlanta", "Columbus", "Augusta"],
+Hawaii: ["Honolulu", "East Honolulu", "Pearl City"],
+Idaho: ["boise", "meridian", "Nampa"],
+Illinois: ["Chicago", "Aurora", "Naperville"],
+Indiana: ["Indianapolis", "Fort Wayne", "Evansville"],
+Iowa: ["Des Moines", "Cedar Rapids", "Davenport"],
+Kansas: ["Wichita", "Overland Park", "Kansas City"],
+Kentucky: ["Louisville", "Lexington", "Bowling Green"],
+Louisiana: ["New Orleans", "Baton Rouge", "Shreveport"],
+Maine: ["Portland", "Lewiston", "Bangor"],
+Maryland: ["Baltimore", "Columbia", "Germantown"],
+Massachusetts: ["Boston", "Worcester", "Springfield"],
+Michigan: ["Detroit", "Grand Rapids", "Warren"],
+Minnesota: ["Minneapolis", "Saint Paul", "Rochester"],
+Mississippi: ["Jackson", "Gulfport", "Southaven"],
+Missouri: ["Kansas City", "Saint Louis", "Springfield"],
+Montana: ["Billings", "Missoula", "Great Falls"],
+Nebraska: ["Omaha", "Lincoln", "Bellevue"],
+Nevada: ["Las Vegas", "Henderson", "Reno"],
+New_Hampshire: ["Manchester", "Nashua", "Concord"],
+New_Jersey: ["Newark", "Jersey City", "Paterson"],
+New_Mexico: ["Albuquerque", "Las Cruces", "Rio Rancho"],
+New_York: ["New York City", "Buffalo", "Rochester"],
+North_Carolina: ["Charlotte", "Raleigh", "Greensboro"],
+North_Dakota: ["Fargo", "Bismarck", "Grand Forks"],
+Ohio: ["Columbus", "Cleveland", "Cincinnati"],
+Oklahoma: ["Oklahoma City", "Tulsa", "Norman"],
+Oregon: ["Portland", "Salem", "Eugene"],
+Pennsylvania: ["Philadelphia", "Pittsburgh", "Allentown"],
+Rhode_Island: ["Providence", "Cranston", "Warwick"],
+South_Carolina: ["Charleston", "Columbia", "North Charleston"],
+South_Dakota: ["Sioux Falls", "Rapid City", "Aberdeen"],
+Tennessee: ["Nashville", "Memphis", "Knoxville"],
+Texas: ["Houston", "San Antonio", "Dallas"],
+Utah: ["Salt Lake City", "West Valley City", "Provo"],
+Vermont: ["Burlington", "South Burlington", "Rutland"],
+Virginia: ["Virginia Beach", "Norfolk", "Chesapeake"],
+Washington: ["Seattle", "Spokane", "Tacoma"],
+West_Virginia: ["Charleston", "Huntington", "Morgantown"],
+Wisconsin: ["Milwaukee", "Madison", "Green Bay"],
+Wyoming: ["Cheyenne", "Casper", "Laramie"]
+}
+
+function makeSubmenu2(value) {
+if(value.length==0) document.getElementById("citySelect2").innerHTML = "<option></option>";
+else {
+var citiesOptions = "";
+for(cityId in citiesByState2[value]) {
+citiesOptions+="<option>"+citiesByState2[value][cityId]+"</option>";
+}
+document.getElementById("citySelect2").innerHTML = citiesOptions;
+}
+}
+function resetSelection2() {
+document.getElementById("stateSelect2").selectedIndex = 0;
+document.getElementById("citySelect2").selectedIndex = 0;
+}
+</script>
+</head>
+
+<!--<h1 class="center">Home Page</h1>-->
+<h2 class="center">Welcome to my Tourist Attraction Locator app.</h2>
+
+<body onload="resetSelection2()">
+
+<form action="/search" method="POST">
+    <div class="center">
+        <p class="txt">Please Choose a State and City below to find attractions near it..</p>
+        <select name="state" id="stateSelect2" size="1" onchange="makeSubmenu2(this.value)">
+        <option value="" disabled selected>Choose State</option>
+        <option>Alabama</option>
+        <option>Alaska</option>
+        <option>Arizona</option>
+        <option>Arkansas</option>
+        <option>California</option>
+        <option>Colorado</option>
+        <option>Connecticut</option>
+        <option>Delaware</option>
+        <option>Florida</option>
+        <option>Georgia</option>
+        <option>Hawaii</option>
+        <option>Idaho</option>
+        <option>Illinois</option>
+        <option>Indiana</option>
+        <option>Iowa</option>
+        <option>Kansas</option>
+        <option>Kentucky</option>
+        <option>Louisiana</option>
+        <option>Maine</option>
+        <option>Maryland</option>
+        <option>Massachusetts</option>
+        <option>Michigan</option>
+        <option>Minnesota</option>
+        <option>Mississippi</option>
+        <option>Missouri</option>
+        <option>Montana</option>
+        <option>Nebraska</option>
+        <option>Nevada</option>
+        <option value="New_Hampshire">New Hampshire</option>
+        <option value="New_Jersey">New Jersey</option>
+        <option value="New_Mexico">New Mexico</option>
+        <option value="New_York">New York</option>
+        <option value="North_Carolina">North Carolina</option>
+        <option value="North_Dakota">North Dakota</option>
+        <option>Ohio</option>
+        <option>Oklahoma</option>
+        <option>Oregon</option>
+        <option>Pennsylvania</option>
+        <option value="Rhode_Island">Rhode Island</option>
+        <option value="South_Carolina">South Carolina</option>
+        <option value="South_Dakota">South Dakota</option>
+        <option>Tennessee</option>
+        <option>Texas</option>
+        <option>Utah</option>
+        <option>Vermont</option>
+        <option>Virginia</option>
+        <option>Washington</option>
+        <option value="West_Virginia">West Virginia</option>
+        <option>Wisconsin</option>
+        <option>Wyoming</option>
+        </select>
+        <select name="city" id="citySelect2" size="1" >
+        <option value="" disabled selected>Choose City</option>
+        <option></option>
+        </select>
+    </div>
+    <br>
+    <p class="center"><input type="submit" value="Go to Attractions" /></p>
+</form>
 
 
 <div class="center" style="position:relative;top:40px;">
