@@ -67,17 +67,17 @@ citiesOptions+="<option>"+citiesByState2[value][cityId]+"</option>";
 document.getElementById("citySelect2").innerHTML = citiesOptions;
 }
 }
-function resetSelection2() {
+function resetSelection2(toggle) {
 document.getElementById("stateSelect2").selectedIndex = 0;
 document.getElementById("citySelect2").selectedIndex = 0;
 }
 </script>
 </head>
 
-<!--<h1 class="center">Home Page</h1>-->
 <h2 class="center">Welcome to my Tourist Attraction Locator app.</h2>
 
 <body onload="resetSelection2()">
+
 
 <form action="/search" method="POST">
     <div class="center">
@@ -144,9 +144,9 @@ document.getElementById("citySelect2").selectedIndex = 0;
     <p class="center"><input type="submit" value="Go to Attractions" /></p>
 </form>
 
-
-<div class="center" style="position:relative;top:40px;">
-    <h4>Check out my CS162 Project if you're bored!</h4>
+<div class="center" style="position:relative;top:30px;">
+    <h4>Try out my CS162 Kuba Game Project if you're bored!</h4>
     <iframe frameborder="0" width="63%;" height="680px" src="https://replit.com/@truonging/KubaGame?lite=1&outputonly=1"></iframe>
 </div>
+
 {% endblock %}

@@ -16,6 +16,7 @@
                     <form method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO DELETE?');" style="margin: auto; width: 60px;">
                         <table>
                             <tr>
+                                <td><input type="hidden" name="support_submit" value="False"></td>
                                 <td><input type="hidden" name="ID" value="{{activity['ID']}}"></td>
                                 <td><button type="submit" class="btn" name="action" value="delete"><i class="fa fa-trash fa-2x"></i></button></td>
                             </tr>
@@ -24,6 +25,7 @@
                     <form method="post" style="margin: auto; width: 150px;">
                         <table>
                             <tr>
+                                <td><input type="hidden" name="support_submit" value="False"></td>
                                 <td><input type="hidden" name="ID" value="{{activity['ID']}}"></td>
                                 <td><button type="submit" name="action" value="go_to_activity" style="font: bold 14px Arial;font-size: 20px;">Visit Activity</button></td>
                             </tr>

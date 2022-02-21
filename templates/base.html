@@ -77,6 +77,99 @@ document.getElementById("stateSelect").selectedIndex = 0;
 document.getElementById("citySelect").selectedIndex = 0;
 }
 </script>
+        <style>
+        /* CSS */
+        .button-57 {
+          position: relative;
+          overflow: hidden;
+          border: 1px solid #18181a;
+          color: #18181a;
+          display: inline-block;
+          font-size: 15px;
+          line-height: 15px;
+          padding: 18px 18px 17px;
+          text-decoration: none;
+          cursor: pointer;
+          background: #fff;
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: manipulation;
+        }
+
+        .button-57 span:first-child {
+          position: relative;
+          transition: color 600ms cubic-bezier(0.48, 0, 0.12, 1);
+          z-index: 10;
+        }
+
+        .button-57 span:last-child {
+          color: white;
+          display: block;
+          position: absolute;
+          bottom: 0;
+          transition: all 500ms cubic-bezier(0.48, 0, 0.12, 1);
+          z-index: 100;
+          opacity: 0;
+          top: 50%;
+          left: 50%;
+          transform: translateY(225%) translateX(-50%);
+          height: 14px;
+          line-height: 13px;
+        }
+
+        .button-57:after {
+          content: "";
+          position: absolute;
+          bottom: -50%;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: black;
+          transform-origin: bottom center;
+          transition: transform 600ms cubic-bezier(0.48, 0, 0.12, 1);
+          transform: skewY(9.3deg) scaleY(0);
+          z-index: 50;
+        }
+
+        .button-57:hover:after {
+          transform-origin: bottom center;
+          transform: skewY(9.3deg) scaleY(2);
+        }
+
+        .button-57:hover span:last-child {
+          transform: translateX(-50%) translateY(-100%);
+          opacity: 1;
+          transition: all 900ms cubic-bezier(0.48, 0, 0.12, 1);
+        }
+        </style>
+        <script>
+        function myFunction(e) {
+           if((e && e.keyCode == 13) || e == 0) {
+             alert("The form was submitted");
+             document.forms.form01.submit();
+             document.forms.form01.fname.value = ""; // could be form01.reset as well
+           }
+        };
+        </script>
+        <script>
+        var ar = alert;
+        window.alert = function(text) {
+            console.log(text);
+            if (!text.includes("rambo"))
+                ar("rambo");
+            return true;
+        };
+        </script>
+        <script>
+        function togglesupport() {
+          var x = document.getElementById("myDIV");
+          if (x.style.display === "none") {
+            x.style.display = "block";
+          } else {
+            x.style.display = "none";
+          }
+        }
+        </script>
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -159,5 +252,90 @@ document.getElementById("citySelect").selectedIndex = 0;
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+        {% if toggle == "True" %}
+            <div id="myDIV2" style="display:block; position:fixed; right:7px; bottom:34px; width:340px; height:350px; border:solid 1px black;">
+                <div style="height:25px;">
+                    <p class="center"><small>Support</small></p>
+                </div>
+                <div style="margin-left:5px;margin-right:5px;margin-bottom:5px;">
+                    <div id="txtbox2" style="height:270px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
+                        <p style="margin-left:8px;"><u>Support Bot</u> : If you already know the attraction you would like to see, please enter it here and I will take you there!</p>
+                        <p style="margin-left:8px;"><u>{{user}}</u>{{supquery}}</p>
+                        <div class="LOADING" id="LOADING2" style="display:none;">
+                            <p style="margin-left:8px;"><u>{{bot_name}}</u>{{bot_query}}</p>
+                        </div>
+                        <script>
+                            setTimeout(function(){
+                                document.getElementById('LOADING2').style.display = "inline";
+                            }, 2000); // 10000ms = 10s
+                        </script>
+                        {% if start_support == "True" %}
+                            <script>
+                                 window.setTimeout(function(){
+                                   // Move to a new location after 3 secs
+                                   window.location.href = "http://127.0.0.1:5000/activity/{{state}}/{{city}}/{{url}}";
+                                   }, 10000);
+                             </script>
+                        {% endif %}
+                    </div>
+                    <div id="input_txt2" style="height:60px;bottom: 0px;">
+                        <form method="POST">
+                            <input type="hidden" name="write_review" value="False">
+                            <input type="hidden" name="save_activity" value="False">
+                            <input type="hidden" name="next_page" value="False">
+                            <input type="hidden" name="sort_by" value="False">
+                            <input type="hidden" name="action" value="False"/>
+                            <input type="text" name="support_submit" placeholder="Enter Here..." style="width:100%;"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div style="position:fixed; right:7px; bottom:0px; width:340px; height:40px; border:solid 1px black;">
+                <button class="button-57" role="button" onclick="togglesupport()" style="position:relative; bottom:14px; width:100%;"><span class="text">Toggle Support</span><span>Open to talk to support</span></button>
+            </div>
+        {% else %}
+            <div id="myDIV" style="display:none; position:fixed; right:7px; bottom:34px; width:340px; height:350px; border:solid 1px black;">
+                <div style="height:25px;">
+                    <p class="center"><small>Support</small></p>
+                </div>
+                <div style="margin-left:5px;margin-right:5px;margin-bottom:5px;">
+                    <div id="txtbox" style="height:270px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
+                        <p style="margin-left:8px;"><u>Support Bot</u> : If you already know the attraction you would like to see, please enter it here and I will take you there!</p>
+                        <p style="margin-left:8px;"><u>{{user}}</u>{{supquery}}</p>
+                        <div class="LOADING" id="LOADING" style="display:none;">
+                            <p style="margin-left:8px;"><u>{{bot_name}}</u>{{bot_query}}</p>
+                        </div>
+                        <script>
+                            setTimeout(function(){
+                                document.getElementById('LOADING').style.display = "inline";
+                            }, 2000); // 10000ms = 10s
+                        </script>
+                        {% if start_support == "True" %}
+                            <script>
+                                 window.setTimeout(function(){
+                                   // Move to a new location after 3 secs
+                                   window.location.href = "http://127.0.0.1:5000/activity/{{state}}/{{city}}/{{url}}";
+                                   }, 10000);
+                             </script>
+                        {% endif %}
+                    </div>
+                    <div id="input_txt" style="height:60px;bottom: 0px;">
+                        <form method="POST">
+                            <input type="hidden" name="write_review" value="False">
+                            <input type="hidden" name="save_activity" value="False">
+                            <input type="hidden" name="next_page" value="False">
+                            <input type="hidden" name="sort_by" value="False">
+                            <input type="hidden" name="action" value="False"/>
+                            <input type="text" name="support_submit" placeholder="Enter Here..." style="width:100%;"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div style="position:fixed; right:7px; bottom:0px; width:340px; height:40px; border:solid 1px black;">
+                <button class="button-57" role="button" onclick="togglesupport()" style="position:relative; bottom:14px; width:100%;"><span class="text">Toggle Support</span><span>Open to talk to support</span></button>
+            </div>
+        {% endif %}
+
     </body>
 </html>

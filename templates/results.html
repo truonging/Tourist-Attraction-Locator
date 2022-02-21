@@ -12,6 +12,7 @@
             <form method="post" action="#" class="inline">
                 <input type="hidden" name="next_page" value="False">
                 <input type="hidden" name="sort_by" value="False">
+                <input type="hidden" name="support_submit" value="False">
                 <input type="hidden" name="name" value={{dct["hidden"][loop.index-1]}}>
                 <button type="submit" name="url" value={{lst[i][ii]}} class="link-button">
                     {{lst_title[i]}}
@@ -26,6 +27,7 @@
 <form class="right" action="#" method="post">
     <input type="hidden" name="next_page" value="True">
     <input type="hidden" name="sort_by" value="False">
+    <input type="hidden" name="support_submit" value="False">
     <input type="submit" value="Next Page"/>
 </form>
 
@@ -39,29 +41,7 @@
 <form class="sort" action="#" method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO SORT?');">
     <input type="hidden" name="next_page" value="False">
     <input type="hidden" name="sort_by" value="True">
+    <input type="hidden" name="support_submit" value="False">
     <input type="submit" value="Sort by Ranking"/>
 </form>
 {% endblock %}
-
-
-
-                <div style="float:left;">
-                    <form method="post" onsubmit="return confirm('ARE YOU SURE YOU WANT TO DELETE?');">
-                        <table class="center" style="width:50%;display: inline-block;text-align:center;" >
-                            <tr>
-                                <td><input type="hidden" name="ID" value="{{activity['ID']}}"></td>
-                                <td style="width:50%"><button type="submit" class="btn" name="action" value="delete"><i class="fa fa-trash fa-2x"></i></button></td>
-                            </tr>
-                        </table>
-                    </form>
-                </div>
-                <div style="float:right;">
-                    <form method="post">
-                        <table class="center" style="width:50%;display: inline-block;" >
-                            <tr>
-                                <td><input type="hidden" name="ID" value="{{activity['ID']}}"></td>
-                                <td style="width:50%"><button type="submit" class="link-button2" name="action" value="go_to_activity">Visit the Activity Page</button></td>
-                            </tr>
-                        </table>
-                    </form>
-                </div>

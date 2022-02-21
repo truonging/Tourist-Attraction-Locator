@@ -51,6 +51,77 @@ def get_url(state, city):
     return final_url
 
 
+def get_url_activity(query):
+    """Grabs the right tripadvisor url that leads to exact activity page based on user query"""
+    states = ["Alabama",
+              "Alaska",
+              "Arizona",
+              "Arkansas",
+              "California",
+              "Colorado",
+              "Connecticut",
+              "Delaware",
+              "Florida",
+              "Georgia",
+              "Hawaii",
+              "Idaho",
+              "Illinois",
+              "Indiana",
+              "Iowa",
+              "Kansas",
+              "Kentucky",
+              "Louisiana",
+              "Maine",
+              "Maryland",
+              "Massachusetts",
+              "Michigan",
+              "Minnesota",
+              "Mississippi",
+              "Missouri",
+              "Montana",
+              "Nebraska",
+              "Nevada",
+              "New Hampshire",
+              "New Jersey",
+              "New Mexico",
+              "New York",
+              "North Carolina",
+              "North Dakota",
+              "Ohio",
+              "Oklahoma",
+              "Oregon",
+              "Pennsylvania",
+              "Rhode Island",
+              "South Carolina",
+              "South Dakota",
+              "Tennessee",
+              "Texas",
+              "Utah",
+              "Vermont",
+              "Virginia",
+              "Washington",
+              "West Virginia",
+              "Wisconsin",
+              "Wyoming"]
+    get_state = ""
+    get_city = ""
+    single_link = ""
+    new_query = "https://www.tripadvisor.com/Attractions " + query
+
+    search_results = scrape_google(new_query)
+    for link in search_results:
+        if "https://www.tripadvisor.com/Attraction_" in link:
+            single_link = link.replace("https://www.tripadvisor.com/", "")
+
+    url = single_link.split(".")[0].split("-")[-1]
+    for state in states:
+        state = state.replace(" ", "_")
+        if state in url:
+            get_state = state
+            get_city = url.replace(state, "")[:-1]
+    return single_link, get_state, get_city
+
+
 def get_things_to_do(url):
     """Returns a list of activities to do based on user city/state"""
     headers = {
