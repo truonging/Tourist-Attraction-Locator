@@ -10,6 +10,9 @@
 <p class="center">{{dct["address"]}}</p>
 <div class="center">
     <form method="post">
+        <input type="hidden" name="img1" value="{{user_image1}}"/>
+        <input type="hidden" name="img2" value="{{user_image2}}"/>
+        <input type="hidden" name="img3" value="{{user_image3}}"/>
         <input type="hidden" name="support_submit" value="False"/>
         <input type="hidden" name="write_review" value="False"/>
         <input type="hidden" name="save_activity" value="True"/>
@@ -42,6 +45,9 @@
         <div class="item" style="position:relative;left:331px;">
             <h3 class="center">Write Your Own Review</h3>
             <form method="post">
+                <input type="hidden" name="img1" value="{{user_image1}}"/>
+                <input type="hidden" name="img2" value="{{user_image2}}"/>
+                <input type="hidden" name="img3" value="{{user_image3}}"/>
                 <input type="hidden" name="support_submit" value="False"/>
                 <input type="hidden" name="save_activity" value="False"/>
                 <input type="hidden" name="write_review" value="True"/>
@@ -82,7 +88,7 @@
         </div>
     </div>
 </div>
-<img class="topright" src='/static/images/{{user_image}}' alt="User Image">
-<img class="topright2" src='/static/images/{{user_image2}}' alt="User Image2">
-<img class="topright3" src='/static/images/{{user_image3}}' alt="User Image3">
+<img class="topright"  src="data:image/jpeg;base64,{{user_image1}}">
+<img class="topright2" src="data:image/jpeg;base64,{{user_image2}}">
+<img class="topright3" src="data:image/jpeg;base64,{{user_image3}}">
 {% endblock %}

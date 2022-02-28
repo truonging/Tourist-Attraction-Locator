@@ -1,9 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_fontawesome import FontAwesome   # used delete font
-from datetime import date  # used to grab the current date if user submits review
+from datetime import date, datetime  # used to grab the current date if user submits review
 import os   # used to grab images from static
 import mysql.connector  # used to connect to MYSQL DB
 import backend as b
+
+
+# to do: if user enters invalid input in support, make bot say "could not find
+# attraction, try again"
+# grabs teammate service when loading activity page which results in saving/reviewing to have to call
+# teammate service which makes loading slow, add when user save/review, return the imgs in url
+# default=None at first
 
 
 app = Flask(__name__)
@@ -183,13 +190,18 @@ def loading(url, city, state):
 def activity(url, city, state):
     """Activity Page after selecting an activity from the list"""
     # calls scraper on tripadvisor and grabs all relevant info to put into dct
-    supquery = user = bot_name = bot_query = state = city = toggle = ""
+    supquery = user = bot_name = bot_query = toggle = "" #i think i can remove city/state
+    mateservice = False
     start_support = "False"
     new_url = "https://www.tripadvisor.com/" + url
     dct = b.get_activity_page(new_url, city)
     if request.method == "POST":
         print(request.form)
         if request.form["save_activity"] == "True":
+            img1 = request.form["img1"]
+            img2 = request.form["img2"]
+            img3 = request.form["img3"]
+            mateservice = True
             mycursor = mydb.cursor()
             sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
             val = b.save_activity_data(dct, city, state, url)
@@ -198,6 +210,10 @@ def activity(url, city, state):
             mydb.commit()
             mycursor.close()
         elif request.form["write_review"] == "True":
+            img1 = request.form["img1"]
+            img2 = request.form["img2"]
+            img3 = request.form["img3"]
+            mateservice = True
             name = request.form["name"]
             if name == "":
                 name = "Anonymous"
@@ -213,6 +229,10 @@ def activity(url, city, state):
             mycursor.close()
         elif request.form["support_submit"] != "":
             if request.form["support_submit"] != "False":
+                img1 = request.form["img1"]
+                img2 = request.form["img2"]
+                img3 = request.form["img3"]
+                mateservice = True
                 supquery = " : " + request.form["support_submit"]
                 user = "User"
                 bot_name = "Support Bot"
@@ -245,14 +265,12 @@ def activity(url, city, state):
                 dct["user2"] = dct["user1"]
                 dct["user1"] = {"name": x["name"], "review": x["review"], "date": x["review_date"]}
             count += 1
+    if not mateservice:
+        img1, img2, img3 = b.call_teammate_service(dct["title"])
 
-    image = [i for i in os.listdir('static/images') if i.endswith('.jpeg')][0]
-    image2 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][0]
-    image3 = [i for i in os.listdir('static/images') if i.endswith('.jpg')][1]
     return render_template("activity.html", dct=dct, city=city, state=state,
-                           user_image=image, user_image2=image2, user_image3=image3, supquery=supquery, user=user,
+                           user_image1=img1, user_image2=img2, user_image3=img3, supquery=supquery, user=user,
                            bot_name=bot_name, bot_query=bot_query, url=url, start_support=start_support, toggle=toggle)
-                            # YOU CAN PROBABLY DELETE CITY AND STATE NOT USED IN HTML. TOO TIRED TO DO IT RN
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""

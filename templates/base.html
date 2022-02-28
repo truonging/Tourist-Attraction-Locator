@@ -254,12 +254,12 @@ document.getElementById("citySelect").selectedIndex = 0;
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
         {% if toggle == "True" %}
-            <div id="myDIV2" style="display:block; position:fixed; right:7px; bottom:34px; width:340px; height:350px; border:solid 1px black;">
+            <div id="myDIV2" style="display:block; position:fixed; right:7px; bottom:34px; width:340px; height:275px; border:solid 1px black;">
                 <div style="height:25px;">
                     <p class="center"><small>Support</small></p>
                 </div>
                 <div style="margin-left:5px;margin-right:5px;margin-bottom:5px;">
-                    <div id="txtbox2" style="height:270px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
+                    <div id="txtbox2" style="height:195px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
                         <p style="margin-left:8px;"><u>Support Bot</u> : If you already know the attraction you would like to see, please enter it here and I will take you there!</p>
                         <p style="margin-left:8px;"><u>{{user}}</u>{{supquery}}</p>
                         <div class="LOADING" id="LOADING2" style="display:none;">
@@ -295,12 +295,12 @@ document.getElementById("citySelect").selectedIndex = 0;
                 <button class="button-57" role="button" onclick="togglesupport()" style="position:relative; bottom:14px; width:100%;"><span class="text">Toggle Support</span><span>Open to talk to support</span></button>
             </div>
         {% else %}
-            <div id="myDIV" style="display:none; position:fixed; right:7px; bottom:34px; width:340px; height:350px; border:solid 1px black;">
+            <div id="myDIV" style="display:none; position:fixed; right:7px; bottom:34px; width:340px; height:275px; border:solid 1px black;">
                 <div style="height:25px;">
                     <p class="center"><small>Support</small></p>
                 </div>
                 <div style="margin-left:5px;margin-right:5px;margin-bottom:5px;">
-                    <div id="txtbox" style="height:270px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
+                    <div id="txtbox" style="height:195px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
                         <p style="margin-left:8px;"><u>Support Bot</u> : If you already know the attraction you would like to see, please enter it here and I will take you there!</p>
                         <p style="margin-left:8px;"><u>{{user}}</u>{{supquery}}</p>
                         <div class="LOADING" id="LOADING" style="display:none;">
@@ -322,6 +322,9 @@ document.getElementById("citySelect").selectedIndex = 0;
                     </div>
                     <div id="input_txt" style="height:60px;bottom: 0px;">
                         <form method="POST">
+                            <input type="hidden" name="img1" value="{{user_image1}}"/>
+                            <input type="hidden" name="img2" value="{{user_image2}}"/>
+                            <input type="hidden" name="img3" value="{{user_image3}}"/>
                             <input type="hidden" name="write_review" value="False">
                             <input type="hidden" name="save_activity" value="False">
                             <input type="hidden" name="next_page" value="False">

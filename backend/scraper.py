@@ -191,6 +191,8 @@ def get_activity_page(url, city):
             else:
                 dct["address"] = i.text
     xx = soup.find_all(class_="WlYyy diXIH brhTq bQCoY")
+    if dct["address"] == "How the site works":
+        dct["address"] = "Not Available"
     for i in xx:
         if "/" in i.text:
             try:
