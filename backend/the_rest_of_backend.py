@@ -47,12 +47,9 @@ def reverse_data(dct, lst, lst_title):
 
 def call_teammate_service(title):
     url = f"http://cs-361-image-scraper.herokuapp.com/search?find={title}"
-    #url = "https://i.natgeofe.com/n/46b07b5e-1264-42e1-ae4b-8a021226e2d0/domestic-cat_thumb_square.jpg"
     result = requests.get(url).text
     converted_dct = json.loads(result)
-    print(converted_dct)
     img1 = get_image(converted_dct["results"][0]["url"], "1")
-    #img1 = get_image(url, "1")
     img2 = get_image(converted_dct["results"][1]["url"], "2")
     img3 = get_image(converted_dct["results"][2]["url"], "3")
     return img1, img2, img3

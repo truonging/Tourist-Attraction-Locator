@@ -192,7 +192,10 @@ def get_activity_page(url, city):
             else:
                 dct["address"] = i.text
     xx = soup.find_all(class_="WlYyy diXIH brhTq bQCoY")
-    if dct["address"] == "How the site works":
+    try:
+        if dct["address"] == "How the site works":
+            dct["address"] = "Not Available"
+    except:
         dct["address"] = "Not Available"
     for i in xx:
         if "/" in i.text:
@@ -208,6 +211,7 @@ def get_activity_page(url, city):
     try:
         dct["title"] = soup.find(class_="Xewee").text
     except:
+        dct["title"] = "Not Available"
         print("couldnt add title")
 
     t = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr")
