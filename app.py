@@ -4,8 +4,10 @@ from datetime import date, datetime  # used to grab the current date if user sub
 import os   # used to grab images from static
 import mysql.connector  # used to connect to MYSQL DB
 import backend as b
+import sys
+sys.path.append('backend')
+from sql_operations import sql_SELECT, sql_INSERT, sql_UPDATE, sql_DELETE
 import requests
-from flask_restful import Api, Resource
 
 # to do: if user enters invalid input in support, make bot say "could not find
 # attraction, try again"
@@ -15,7 +17,6 @@ from flask_restful import Api, Resource
 
 
 app = Flask(__name__)
-api = Api(app)
 fa = FontAwesome(app)
 mydb = mysql.connector.connect(
     host="localhost",
@@ -31,120 +32,65 @@ mydb = mysql.connector.connect(
 def activities_API(activity_id=None, activity_rating=None):
     """REST API for activities data"""
     if request.method == "GET":
-        if not activity_id:
-            """READ all activities"""
-            mycursor = mydb.cursor(dictionary=True)
-            query = "SELECT * FROM activities"
-            mycursor.execute(query)
-            result = mycursor.fetchall()
-            mycursor.close()
-            return jsonify(result), 200
-        else:
-            """READ single activity"""
-            query = f"SELECT * FROM activities WHERE ID={activity_id}"
-            mycursor = mydb.cursor(dictionary=True)
-            mycursor.execute(query)
-            result = mycursor.fetchone()
-            mycursor.close()
-            return jsonify(result), 200
+        if not activity_id:  # READ all activities
+            sql = "SELECT * FROM activities"
+            return jsonify(sql_SELECT(sql)), 200
+        else:  # READ single activity
+            sql = f"SELECT * FROM activities WHERE ID={activity_id}"
+            return jsonify(sql_SELECT(sql, single=True)), 200
 
-    elif request.method == "POST" and activity_id is None:
-        """CREATE new resource activity"""
-        mycursor = mydb.cursor(dictionary=True)
+    elif request.method == "POST" and activity_id is None:  # CREATE new single activity
+        title, address, reviewAmount, rating, description, city, state, url = "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh"
         sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-        title, address, reviewAmount, rating, description, city, state, url = "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh",
-        val = (title, address, reviewAmount, rating, description, city, state, url)
-        mycursor.execute(sql, val)
-        print(mycursor.rowcount, "was inserted.")
-        mydb.commit()
         sql2 = "SELECT * FROM activities ORDER BY ID DESC LIMIT 1;"
-        mycursor.execute(sql2)
-        result = mycursor.fetchone()
-        mycursor.close()
-        return jsonify(result), 201
+        sql_INSERT(sql, (title, address, reviewAmount, rating, description, city, state, url))
+        return jsonify(sql_SELECT(sql2, single=True)), 201
 
-    elif request.method == "PATCH":
-        mycursor = mydb.cursor(dictionary=True)
+    elif request.method == "PATCH":  # UPDATE single activity
         sql = f"UPDATE activities SET rating ={activity_rating} WHERE ID={activity_id}"
-        mycursor.execute(sql)
-        mydb.commit()
-        print(mycursor.rowcount, "record(s) updated")
         sql2 = f"SELECT * FROM activities WHERE ID={activity_id}"
-        mycursor.execute(sql2)
-        result = mycursor.fetchone()
-        mycursor.close()
-        return jsonify(result), 200
+        sql_UPDATE(sql)
+        return jsonify(sql_SELECT(sql2, single=True)), 200
 
-    elif request.method == "DELETE":
-        """DELETE single activity"""
-        mycursor = mydb.cursor(dictionary=True)
-        sql2 = f"SELECT * FROM activities WHERE ID={activity_id}"
-        mycursor.execute(sql2)
-        result = mycursor.fetchone()
+    elif request.method == "DELETE":  # DELETE single activity
         sql = f"DELETE FROM activities WHERE ID = '{activity_id}'"
-        mycursor.execute(sql)
-        mydb.commit()
-        print(mycursor.rowcount, "record(s) deleted")
-        mycursor.close()
+        sql2 = f"SELECT * FROM activities WHERE ID={activity_id}"
+        result = sql_SELECT(sql2, single=True)
+        sql_DELETE(sql)
         return jsonify(result), 200
 
 
 @app.route("/reviews/", methods=["GET", "POST"])
-@app.route("/reviews/<review_id>", methods=["GET", "POST", "DELETE"])
+@app.route("/reviews/<review_id>", methods=["GET", "DELETE"])
 @app.route("/reviews/<review_id>/<review_username>", methods=["PATCH"])
 def reviews_API(review_id=None, review_username=None):
     """REST API for reviews data"""
     if request.method == "GET":
-        if not review_id:
-            mycursor = mydb.cursor(dictionary=True)
-            query = "SELECT * FROM user_reviews"
-            mycursor.execute(query)
-            result = mycursor.fetchall()
-            mycursor.close()
-            return jsonify(result), 200
-        else:
-            mycursor = mydb.cursor(dictionary=True)
-            query = f"SELECT * FROM user_reviews WHERE ID={review_id}"
-            mycursor.execute(query)
-            result = mycursor.fetchone()
-            mycursor.close()
-            return jsonify(result), 200
+        if not review_id:  # READ all user_reviews
+            sql = "SELECT * FROM user_reviews"
+            return jsonify(sql_SELECT(sql)), 200
+        else:  # READ single user_review
+            sql = f"SELECT * FROM user_reviews WHERE ID={review_id}"
+            return jsonify(sql_SELECT(sql, single=True)), 200
 
-    elif request.method == "POST":
-        mycursor = mydb.cursor(dictionary=True)
-        sql = "INSERT INTO user_reviews (name, review_date, review, url) VALUES (%s,%s,%s,%s)"
+    elif request.method == "POST":  # CREATE single user_review
         name = review_date = review = new_url = "yahhh"
-        mycursor.execute(sql, (name, review_date, review, new_url))
-        print(mycursor.rowcount, "was inserted.")
-        mydb.commit()
+        sql = "INSERT INTO user_reviews (name, review_date, review, url) VALUES (%s,%s,%s,%s)"
         sql2 = "SELECT * FROM user_reviews ORDER BY ID DESC LIMIT 1;"
-        mycursor.execute(sql2)
-        result = mycursor.fetchone()
-        mycursor.close()
-        return jsonify(result), 201
+        sql_INSERT(sql, (name, review_date, review, new_url))
+        return jsonify(sql_SELECT(sql2, single=True)), 201
 
-    elif request.method == "PATCH":
-        mycursor = mydb.cursor(dictionary=True)
+    elif request.method == "PATCH":  # UPDATE single user_review
         sql = f"UPDATE user_reviews SET name='{review_username}' WHERE ID={review_id}"
-        mycursor.execute(sql)
-        mydb.commit()
-        print(mycursor.rowcount, "record(s) updated")
         sql2 = f"SELECT * FROM user_reviews WHERE ID={review_id}"
-        mycursor.execute(sql2)
-        result = mycursor.fetchone()
-        mycursor.close()
-        return jsonify(result), 200
+        sql_UPDATE(sql)
+        return jsonify(sql_SELECT(sql2, single=True)), 200
 
-    elif request.method == "DELETE":
-        mycursor = mydb.cursor(dictionary=True)
-        sql2 = f"SELECT * FROM user_reviews WHERE ID={review_id}"
-        mycursor.execute(sql2)
-        result = mycursor.fetchone()
+    elif request.method == "DELETE":  # DELETE single user_review
         sql = f"DELETE FROM user_reviews WHERE ID = '{review_id}'"
-        mycursor.execute(sql)
-        mydb.commit()
-        print(mycursor.rowcount, "record(s) deleted")
-        mycursor.close()
+        sql2 = f"SELECT * FROM user_reviews WHERE ID={review_id}"
+        result = sql_SELECT(sql2, single=True)
+        sql_DELETE(sql)
         return jsonify(result), 200
 
 
