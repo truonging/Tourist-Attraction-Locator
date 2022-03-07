@@ -27,7 +27,7 @@ def sql_INSERT(sql, values):
     mydb = connect_mysql()
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(sql, values)
-    print(mycursor.rowcount, "record inserted.")
+    print(mycursor.rowcount, "record INSERTED.")
     mydb.commit()
     mycursor.close()
     mydb.close()
@@ -38,7 +38,7 @@ def sql_UPDATE(sql):
     mydb = connect_mysql()
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(sql)
-    print(mycursor.rowcount, "record updated")
+    print(mycursor.rowcount, "record UPDATED")
     mydb.commit()
     mycursor.close()
     mydb.close()
@@ -49,16 +49,17 @@ def sql_DELETE(sql):
     mydb = connect_mysql()
     mycursor = mydb.cursor()
     mycursor.execute(sql)
-    print(mycursor.rowcount, "record deleted")
+    print(mycursor.rowcount, "record DELETED")
     mydb.commit()
     mycursor.close()
     mydb.close()
 
 
 def connect_mysql():
+    """Connect to mysql DB no peeking"""
     mydb = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Rtruong3990",
+        password="",
         database="361_project")
     return mydb

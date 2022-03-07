@@ -26,6 +26,7 @@ def tuple_from_data(dct, city, state, url):
 
 
 def calc_ratings(dct):
+    """calculates the rankings based on reviews because tripadvisor rounds too much"""
     star5 = int(dct["rating5"].replace(",", ""))
     star4 = int(dct["rating4"].replace(",", ""))
     star3 = int(dct["rating3"].replace(",", ""))
@@ -48,6 +49,7 @@ def reverse_data(dct, lst, lst_title):
 
 
 def call_teammate_service(title):
+    """Sends a GET request to teammate service and retrieve images"""
     url = f"http://cs-361-image-scraper.herokuapp.com/search?find={title}"
     result = requests.get(url).text
     converted_dct = json.loads(result)
@@ -59,6 +61,7 @@ def call_teammate_service(title):
 
 
 def get_image(img_url, num):
+    """Download the image based on the given url and save it locally to display on page"""
     ssl._create_default_https_context = ssl._create_unverified_context  # DOES NOT CHECK FOR SSL CERT
 
     path = f"img{num}.jpg"
@@ -67,7 +70,6 @@ def get_image(img_url, num):
     file.write(response.content)
     file.close()
 
-    #urllib.request.urlretrieve(img_url, f"img{num}_big.jpg")
     imm = Image.open(f"img{num}.jpg")
     new_image = imm.resize((190, 190))
     new_image.save(f'img{num}.jpg')

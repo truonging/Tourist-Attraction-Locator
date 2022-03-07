@@ -259,6 +259,8 @@ def get_activity_page(url, city):
                 user["date"] = slicer_after(i.text, "This")
             count += 1
         dct[user_num] = user
+    if dct["description"] == dct["user1"]["review"]:
+        dct["description"] = "Not Available"
     return dct
 
 
