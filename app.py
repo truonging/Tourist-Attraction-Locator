@@ -1,106 +1,132 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask_fontawesome import FontAwesome   # used delete font
-from datetime import date, datetime  # used to grab the current date if user submits review
-import os   # used to grab images from static
-import mysql.connector  # used to connect to MYSQL DB
-import backend as b
-
-
-# to do: if user enters invalid input in support, make bot say "could not find
-# attraction, try again"
-# grabs teammate service when loading activity page which results in saving/reviewing to have to call
-# teammate service which makes loading slow, add when user save/review, return the imgs in url
-# default=None at first
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask_fontawesome import FontAwesome
+from datetime import date
+import requests
+import sys
+sys.path.append('backend')
+from sql_operations import sql_SELECT, sql_INSERT, sql_UPDATE, sql_DELETE
+from scraper import get_url, get_things_to_do, get_activity_page
+from the_rest_of_backend import tuple_from_data, calc_ratings, reverse_data, call_teammate_service, get_image_from_form, update_dct_reviews, get_support_variables, update_support_variables
 
 
 app = Flask(__name__)
 fa = FontAwesome(app)
-mydb = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Rtruong3990",
-    database="361_project"
-)
+
+
+@app.route("/activities/", methods=["GET", "POST"])
+@app.route("/activities/<activity_id>", methods=["GET", "DELETE"])
+@app.route("/activities/post/<title>/<address>/<reviewAmount>/<rating>/<description>/<city>/<state>/<url>", methods=["POST"])
+@app.route("/activities/patch/<activity_id>/<title>/<address>/<reviewAmount>/<rating>/<description>/<city>/<state>/<url>", methods=["PATCH"])
+def activities_API(activity_id=None, rating=None, title=None, address=None, reviewAmount=None, description=None, city=None, state=None, url=None):
+    """REST API for activities data"""
+    if request.method == "GET":
+        if not activity_id:  # READ all activities
+            sql = "SELECT * FROM activities"
+            return jsonify(sql_SELECT(sql)), 200
+        else:  # READ single activity
+            sql = f"SELECT * FROM activities WHERE ID={activity_id}"
+            return jsonify(sql_SELECT(sql, single=True)), 200
+
+    elif request.method == "POST":  # CREATE new single activity
+        sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+        sql2 = "SELECT * FROM activities ORDER BY ID DESC LIMIT 1;"
+        if title is None:
+            title, address, reviewAmount, rating, description, city, state, url = "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh"
+        sql_INSERT(sql, (title, address, reviewAmount, rating, description, city, state, url))
+        return jsonify(sql_SELECT(sql2, single=True)), 201
+
+    elif request.method == "PATCH":  # UPDATE single activity
+        sql = f"UPDATE activities SET title='{title}', address='{address}', reviewAmount='{reviewAmount}', rating='{rating}', description='{description}', city='{city}', state='{state}', url='{url}' WHERE ID={activity_id}"
+        sql2 = f"SELECT * FROM activities WHERE ID={activity_id}"
+        sql_UPDATE(sql)
+        return jsonify(sql_SELECT(sql2, single=True)), 200
+
+    elif request.method == "DELETE":  # DELETE single activity
+        sql = f"DELETE FROM activities WHERE ID = '{activity_id}'"
+        sql2 = f"SELECT * FROM activities WHERE ID={activity_id}"
+        result = sql_SELECT(sql2, single=True)
+        sql_DELETE(sql)
+        return jsonify(result), 200
+
+
+@app.route("/reviews/", methods=["GET", "POST"])
+@app.route("/reviews/<review_id>", methods=["GET", "DELETE"])
+@app.route("/reviews/post/<name>/<review_date>/<review>/<url>", methods=["POST"])
+@app.route("/reviews/patch/<review_id>/<name>/<review_date>/<review>/<url>", methods=["PATCH"])
+def reviews_API(review_id=None, name=None, review_date=None, review=None, url=None):
+    """REST API for reviews data"""
+    if request.method == "GET":
+        if not review_id:  # READ all user_reviews
+            sql = "SELECT * FROM user_reviews"
+            return jsonify(sql_SELECT(sql)), 200
+        else:  # READ single user_review
+            sql = f"SELECT * FROM user_reviews WHERE ID={review_id}"
+            return jsonify(sql_SELECT(sql, single=True)), 200
+
+    elif request.method == "POST":  # CREATE single user_review
+        sql = "INSERT INTO user_reviews (name, review_date, review, url) VALUES (%s,%s,%s,%s)"
+        sql2 = "SELECT * FROM user_reviews ORDER BY ID DESC LIMIT 1;"
+        if name is None:
+            name = review_date = review = url = "yahhh"
+        if url[0] == "A":
+            url = "https://www.tripadvisor.com/" + url
+        sql_INSERT(sql, (name, review_date, review, url))
+        return jsonify(sql_SELECT(sql2, single=True)), 201
+
+    elif request.method == "PATCH":  # UPDATE single user_review
+        sql = f"UPDATE user_reviews SET name='{name}', review_date='{review_date}', review='{review}', url='{url}' WHERE ID={review_id}"
+        sql2 = f"SELECT * FROM user_reviews WHERE ID={review_id}"
+        sql_UPDATE(sql)
+        return jsonify(sql_SELECT(sql2, single=True)), 200
+
+    elif request.method == "DELETE":  # DELETE single user_review
+        sql = f"DELETE FROM user_reviews WHERE ID = '{review_id}'"
+        sql2 = f"SELECT * FROM user_reviews WHERE ID={review_id}"
+        result = sql_SELECT(sql2, single=True)
+        sql_DELETE(sql)
+        return jsonify(result), 200
 
 
 @app.route("/", methods=["POST", "GET"])
 def home():
     """Home Page"""
-    supquery = user = bot_name = bot_query = url = state = city = toggle = ""
-    start_support = "False"
+    supBot = get_support_variables()
     if request.method == "POST":
-        if request.form["support_submit"] != "":
-            supquery = " : " + request.form["support_submit"]
-            user = "User"
-            bot_name = "Support Bot"
-            bot_query = " : Give me a moment while I redirect you to the correct page. Thankyou for using support, have a good day!"
-            url, state, city = b.get_url_activity(request.form["support_submit"])
-            start_support = "True"
-            print("yes ",url)
-            toggle = "True"
-    return render_template("index.html", supquery=supquery, user=user, bot_name=bot_name, bot_query=bot_query, url=url, state=state, city=city, start_support=start_support, toggle=toggle)
+        if request.form["support_submit"] != "": # user submitted from supportBot
+            update_support_variables(supBot)
+    return render_template("index.html", supBot=supBot)
 
 
 @app.route("/owned_activities", methods=["POST", "GET"])
 def owned_activities():
     """Page that dynamically displays user saved activities from mysqldb and lets users delete activity from table"""
-    supquery = user = bot_name = bot_query = url = state = city = toggle = ""
-    start_support = "False"
+    supBot = get_support_variables()
     if request.method == "POST":
         print(request.form)
-        if request.form["action"] == "delete":
-            ID = request.form["ID"]
-            mycursor = mydb.cursor()
-            sql = f"DELETE FROM activities WHERE ID = '{ID}'"
-            mycursor.execute(sql)
-            mydb.commit()
-            print(mycursor.rowcount, "record(s) deleted")
-            mycursor.close()
-        elif request.form["action"] == "go_to_activity":
-            ID = request.form["ID"]
-            mycursor = mydb.cursor()
-            sql = f"SELECT city, state, url FROM activities WHERE ID = '{ID}'"
-            mycursor.execute(sql)
-            city, state, url = mycursor.fetchone()
-            mycursor.close()
-            return redirect(url_for("activity", city=city, state=state, url=url))
+        if request.form["action"] == "delete":  # if user presses delete icon
+            requests.delete(f"http://127.0.0.1:5000/activities/{request.form['ID']}")
+        elif request.form["action"] == "go_to_activity": # go straight to activity page
+            activity = requests.get(f"http://127.0.0.1:5000/activities/{request.form['ID']}").json()
+            return redirect(url_for("activity", city=activity["city"], state=activity["state"], url=activity["url"]))
         elif request.form["support_submit"] != "":
-            supquery = " : " + request.form["support_submit"]
-            user = "User"
-            bot_name = "Support Bot"
-            bot_query = " : Give me a moment while I redirect you to the correct page. Thankyou for using support, have a good day!"
-            url, state, city = b.get_url_activity(request.form["support_submit"])
-            start_support = "True"
-            toggle = "True"
-    mycursor = mydb.cursor(dictionary=True)
-    query = "SELECT * FROM activities"
-    mycursor.execute(query)
-    result = mycursor.fetchall()
-    mycursor.close()
-    return render_template("owned_activities.html", database=result, supquery=supquery, user=user, bot_name=bot_name, bot_query=bot_query, url=url, state=state, city=city, start_support=start_support, toggle=toggle)
+            update_support_variables(supBot)
+    activities = requests.get("http://127.0.0.1:5000/activities/").json()
+    return render_template("owned_activities.html", database=activities, supBot=supBot)
 
 
-@app.route("/search", methods=["POST", "GET"])
+@app.route("/search", methods=["POST"])
 def search():
     """Search Page"""
-    # if receive POST, redirects to result page with state,city
     if request.method == "POST":
         print("the request form:", request.form)
-        state = request.form["state"]
-        city = request.form["city"]
-        return redirect(url_for("results", state=state, city=city, sort="False"))
-    else:
-        return render_template("search.html")
+        return redirect(url_for("results", state=request.form["state"], city=request.form["city"], sort="False"))
 
 
 @app.route("/results/Page_1/<state>_<city>_<sort>", methods=["POST", "GET"])
 def results(state, city, sort):
     """Results Page after selecting State/City"""
-    # if receive POST, redirect to activity page the url,city,state
-    supquery = user = bot_name = bot_query = url = toggle = ""
-    start_support = "False"
+    supBot = get_support_variables()
     data = (state, city, sort, "results")
-    data2 = (supquery, user, bot_name, bot_query, url, toggle, start_support)
     if request.method == "POST":
         print(request.form)
         if request.form["next_page"] == "True":
@@ -111,25 +137,15 @@ def results(state, city, sort):
             if request.form["support_submit"] == "False":
                 return loading_page(data)
             else:
-                supquery = " : " + request.form["support_submit"]
-                user = "User"
-                bot_name = "Support Bot"
-                bot_query = " : Give me a moment while I redirect you to the correct page. Thankyou for using support, have a good day!"
-                url, state, city = b.get_url_activity(request.form["support_submit"])
-                print("@@@@@@@@@@@ ", url)
-                start_support = "True"
-                toggle = "True"
-                data3 = (supquery, user, bot_name, bot_query, url, toggle, start_support)
-                return result_page(data, data3)
-    return result_page(data, data2)
+                update_support_variables(supBot)
+                return result_page(data, supBot)
+    return result_page(data, supBot)
 
 
 @app.route("/results/Page_2/<state>_<city>_<sort>", methods=["POST", "GET"])
 def results2(state, city, sort):
-    supquery = user = bot_name = bot_query = url = toggle = ""
-    start_support = "False"
+    supBot = get_support_variables()
     data = (state, city, sort, "results2")
-    data2 = (supquery, user, bot_name, bot_query, url, toggle, start_support)
     if request.method == "POST":
         print(request.form)
         if request.form["next_page"] == "True":
@@ -140,25 +156,15 @@ def results2(state, city, sort):
             if request.form["support_submit"] == "False":
                 return loading_page(data)
             else:
-                supquery = " : " + request.form["support_submit"]
-                user = "User"
-                bot_name = "Support Bot"
-                bot_query = " : Give me a moment while I redirect you to the correct page. Thankyou for using support, have a good day!"
-                url, state, city = b.get_url_activity(request.form["support_submit"])
-                print("@@@@@@@@@@@ ", url)
-                start_support = "True"
-                toggle = "True"
-                data3 = (supquery, user, bot_name, bot_query, url, toggle, start_support)
-                return result_page(data, data3)
-    return result_page(data, data2)
+                update_support_variables(supBot)
+                return result_page(data, supBot)
+    return result_page(data, supBot)
 
 
 @app.route("/results/Page_3/<state>_<city>_<sort>", methods=["POST", "GET"])
 def results3(state, city, sort):
-    supquery = user = bot_name = bot_query = url = toggle = ""
-    start_support = "False"
+    supBot = get_support_variables()
     data = (state, city, sort, "results3")
-    data2 = (supquery, user, bot_name, bot_query, url, toggle, start_support)
     if request.method == "POST":
         print(request.form)
         if request.form["sort_by"] == "True":
@@ -167,17 +173,9 @@ def results3(state, city, sort):
             if request.form["support_submit"] == "False":
                 return loading_page(data)
             else:
-                supquery = " : " + request.form["support_submit"]
-                user = "User"
-                bot_name = "Support Bot"
-                bot_query = " : Give me a moment while I redirect you to the correct page. Thankyou for using support, have a good day!"
-                url, state, city = b.get_url_activity(request.form["support_submit"])
-                print("@@@@@@@@@@@ ", url)
-                start_support = "True"
-                toggle = "True"
-                data3 = (supquery, user, bot_name, bot_query, url, toggle, start_support)
-                return result_page(data, data3)
-    return result_page(data, data2)
+                update_support_variables(supBot)
+                return result_page(data, supBot)
+    return result_page(data, supBot)
 
 
 @app.route("/loading/<state>/<city>/<url>")
@@ -189,88 +187,36 @@ def loading(url, city, state):
 @app.route("/activity/<state>/<city>/<url>", methods=["POST", "GET"])
 def activity(url, city, state):
     """Activity Page after selecting an activity from the list"""
-    # calls scraper on tripadvisor and grabs all relevant info to put into dct
-    supquery = user = bot_name = bot_query = toggle = "" #i think i can remove city/state
     mateservice = False
-    start_support = "False"
+    supBot = get_support_variables()
     new_url = "https://www.tripadvisor.com/" + url
-    dct = b.get_activity_page(new_url, city)
+    dct = get_activity_page(new_url, city)  # calls scraper on tripadvisor and grabs all relevant info to put into dct
     if request.method == "POST":
         print(request.form)
-        if request.form["save_activity"] == "True":
-            img1 = request.form["img1"]
-            img2 = request.form["img2"]
-            img3 = request.form["img3"]
-            mateservice = True
-            mycursor = mydb.cursor()
-            sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-            val = b.save_activity_data(dct, city, state, url)
-            mycursor.execute(sql, val)
-            print(mycursor.rowcount, "was inserted.")
-            mydb.commit()
-            mycursor.close()
-        elif request.form["write_review"] == "True":
-            img1 = request.form["img1"]
-            img2 = request.form["img2"]
-            img3 = request.form["img3"]
-            mateservice = True
-            name = request.form["name"]
-            if name == "":
-                name = "Anonymous"
-            review = request.form["review"]
-            today = date.today()
-            review_date = today.strftime("%B %d, %Y")
-            review_date = "Written " + review_date
-            mycursor = mydb.cursor()
-            sql = "INSERT INTO user_reviews (name, review_date, review, url) VALUES (%s,%s,%s,%s)"
-            mycursor.execute(sql, (name, review_date, review, new_url))
-            print(mycursor.rowcount, "was inserted.")
-            mydb.commit()
-            mycursor.close()
+        mateservice = True
+        images = get_image_from_form()
+        if request.form["save_activity"] == "True":  # if user wants to save activity
+            title, address, reviewAmount, rating, description, city, state, url = tuple_from_data(dct, city, state, url)
+            requests.post(f"http://127.0.0.1:5000/activities/post/{title}/{address}/{reviewAmount}/{rating}/{description}/{city}/{state}/{url}")
+        elif request.form["write_review"] == "True":  # if user writes a review
+            name = "Anonymous" if request.form["name"] == "" else request.form["name"]
+            review_date = "Written " + date.today().strftime("%B %d, %Y")
+            requests.post(f"http://127.0.0.1:5000/reviews/post/{name}/{review_date}/{request.form['review']}/{url}")
         elif request.form["support_submit"] != "":
             if request.form["support_submit"] != "False":
-                img1 = request.form["img1"]
-                img2 = request.form["img2"]
-                img3 = request.form["img3"]
-                mateservice = True
-                supquery = " : " + request.form["support_submit"]
-                user = "User"
-                bot_name = "Support Bot"
-                bot_query = " : Give me a moment while I redirect you to the correct page. Thankyou for using support, have a good day!"
-                url, state, city = b.get_url_activity(request.form["support_submit"])
-                start_support = "True"
-                toggle = "True"
+                update_support_variables(supBot)
     try:
-        b.calc_ratings(dct)
+        calc_ratings(dct)
     except:
-        print("couldnt calc_ratings")
+        print("couldn't calc_ratings")
 
-    # check if new_url in mysql url
-    mycursor = mydb.cursor(dictionary=True)
-    sql = f"SELECT * FROM user_reviews WHERE url = '{new_url}'"
-    mycursor.execute(sql)
-    result = mycursor.fetchall()
-    mycursor.close()
-    if len(result) >= 1:
-        dct["user3"] = dct["user2"]
-        dct["user2"] = dct["user1"]
-        count = 1
-        for x in result:
-            if count == 4:
-                break
-            if count == 1:
-                dct["user1"] = {"name": x["name"], "review": x["review"], "date": x["review_date"]}
-            elif count >= 2:
-                dct["user3"] = dct["user2"]
-                dct["user2"] = dct["user1"]
-                dct["user1"] = {"name": x["name"], "review": x["review"], "date": x["review_date"]}
-            count += 1
+    sql = f"SELECT * FROM user_reviews WHERE url = '{new_url}'"  # grabs all user_reviews related to the activity
+    update_dct_reviews(dct, sql_SELECT(sql))
     if not mateservice:
-        img1, img2, img3 = b.call_teammate_service(dct["title"])
-
-    return render_template("activity.html", dct=dct, city=city, state=state,
-                           user_image1=img1, user_image2=img2, user_image3=img3, supquery=supquery, user=user,
-                           bot_name=bot_name, bot_query=bot_query, url=url, start_support=start_support, toggle=toggle)
+        # mages = call_teammate_service(dct["title"])
+        pass
+    images = {"img1": None, "img2": None, "img3": None}  # TEMP CODE
+    return render_template("activity.html", dct=dct, city=city, state=state, images=images, supBot=supBot)
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""
@@ -305,22 +251,19 @@ def loading_page(data):
     return redirect(url_for("loading", url=url_temp, city=city, state=state))
 
 
-def result_page(data, data2):
-    # get Tripadvisor url after sending in state/city to google and getting the results, grabs "Things to do" list
-    # and return it as a dictionary with activity:url key,value
+def result_page(data, supBot):
+    """ get Tripadvisor url after sending in state/city to google and getting the results, grabs "Things to do" list
+    and return it as a dictionary with activity:url key,value"""
     state, city, sort, result = data
-    supquery, user, bot_name, bot_query, url, toggle, start_support = data2
-    if start_support == "False":
-        url = b.get_url(state, city)
-        dct, lst, lst_title = b.get_things_to_do(url)
+    if supBot["start_support"] == "False":
+        url = get_url(state, city)
+        dct, lst, lst_title = get_things_to_do(url)
     else:
-        dct, lst, lst_title = b.get_things_to_do(b.get_url(state, city))
+        dct, lst, lst_title = get_things_to_do(get_url(state, city))
     result = result + ".html"
-    if sort == "False":
-        return render_template(result, dct=dct, lst=lst, lst_title=lst_title, supquery=supquery, user=user, bot_name=bot_name, bot_query=bot_query, url=url, state=state, city=city, start_support=start_support, toggle=toggle)
     if sort == "True":
-        dct, lst, lst_title = b.reverse_data(dct, lst, lst_title)
-        return render_template(result, dct=dct, lst=lst, lst_title=lst_title, supquery=supquery, user=user, bot_name=bot_name, bot_query=bot_query, url=url, state=state, city=city, start_support=start_support, toggle=toggle)
+        dct, lst, lst_title = reverse_data(dct, lst, lst_title)
+    return render_template(result, dct=dct, lst=lst, lst_title=lst_title, supBot=supBot)
 
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``"""

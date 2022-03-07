@@ -253,7 +253,7 @@ document.getElementById("citySelect").selectedIndex = 0;
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
-        {% if toggle == "True" %}
+        {% if supBot["toggle"] == "True" %}
             <div id="myDIV2" style="display:block; position:fixed; right:7px; bottom:34px; width:340px; height:275px; border:solid 1px black;">
                 <div style="height:25px;">
                     <p class="center"><small>Support</small></p>
@@ -261,20 +261,20 @@ document.getElementById("citySelect").selectedIndex = 0;
                 <div style="margin-left:5px;margin-right:5px;margin-bottom:5px;">
                     <div id="txtbox2" style="height:195px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
                         <p style="margin-left:8px;"><u>Support Bot</u> : If you already know the attraction you would like to see, please enter it here and I will take you there!</p>
-                        <p style="margin-left:8px;"><u>{{user}}</u>{{supquery}}</p>
+                        <p style="margin-left:8px;"><u>{{supBot["user"]}}</u>{{supBot["supquery"]}}</p>
                         <div class="LOADING" id="LOADING2" style="display:none;">
-                            <p style="margin-left:8px;"><u>{{bot_name}}</u>{{bot_query}}</p>
+                            <p style="margin-left:8px;"><u>{{supBot["bot_name"]}}</u>{{supBot["bot_query"]}}</p>
                         </div>
                         <script>
                             setTimeout(function(){
                                 document.getElementById('LOADING2').style.display = "inline";
                             }, 2000); // 10000ms = 10s
                         </script>
-                        {% if start_support == "True" %}
+                        {% if supBot["start_support"] == "True" %}
                             <script>
                                  window.setTimeout(function(){
                                    // Move to a new location after 3 secs
-                                   window.location.href = "http://127.0.0.1:5000/activity/{{state}}/{{city}}/{{url}}";
+                                   window.location.href = "http://127.0.0.1:5000/activity/{{supBot["state"]}}/{{supBot["city"]}}/{{supBot["url"]}}";
                                    }, 10000);
                              </script>
                         {% endif %}
@@ -302,20 +302,20 @@ document.getElementById("citySelect").selectedIndex = 0;
                 <div style="margin-left:5px;margin-right:5px;margin-bottom:5px;">
                     <div id="txtbox" style="height:195px; margin-bottom:5px; border:solid 1px black; overflow: auto;">
                         <p style="margin-left:8px;"><u>Support Bot</u> : If you already know the attraction you would like to see, please enter it here and I will take you there!</p>
-                        <p style="margin-left:8px;"><u>{{user}}</u>{{supquery}}</p>
+                        <p style="margin-left:8px;"><u>{{supBot["user"]}}</u>{{supBot["supquery"]}}</p>
                         <div class="LOADING" id="LOADING" style="display:none;">
-                            <p style="margin-left:8px;"><u>{{bot_name}}</u>{{bot_query}}</p>
+                            <p style="margin-left:8px;"><u>{{supBot["bot_name"]}}</u>{{supBot["bot_query"]}}</p>
                         </div>
                         <script>
                             setTimeout(function(){
                                 document.getElementById('LOADING').style.display = "inline";
                             }, 2000); // 10000ms = 10s
                         </script>
-                        {% if start_support == "True" %}
+                        {% if supBot["start_support"] == "True" %}
                             <script>
                                  window.setTimeout(function(){
                                    // Move to a new location after 3 secs
-                                   window.location.href = "http://127.0.0.1:5000/activity/{{state}}/{{city}}/{{url}}";
+                                   window.location.href = "http://127.0.0.1:5000/activity/{{supBot["state"]}}/{{supBot["city"]}}/{{supBot["url"]}}";
                                    }, 10000);
                              </script>
                         {% endif %}
