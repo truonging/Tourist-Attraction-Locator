@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import requests
 import urllib
 
-# test commit
 
 def get_source(url):
     """Method to help connect to response"""
