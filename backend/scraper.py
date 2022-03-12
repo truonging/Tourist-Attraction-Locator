@@ -103,16 +103,10 @@ def get_url_activity(query):
               "West Virginia",
               "Wisconsin",
               "Wyoming"]
-    get_state = ""
-    get_city = ""
-    single_link = ""
-    new_query = "https://www.tripadvisor.com/Attractions " + query
-
-    search_results = scrape_google(new_query)
-    for link in search_results:
+    get_state = get_city = single_link = ""
+    for link in scrape_google("https://www.tripadvisor.com/Attractions " + query):
         if "https://www.tripadvisor.com/Attraction_" in link:
             single_link = link.replace("https://www.tripadvisor.com/", "")
-
     url = single_link.split(".")[0].split("-")[-1]
     for state in states:
         state = state.replace(" ", "_")
@@ -132,14 +126,12 @@ def get_things_to_do(url):
         'accept-encoding': 'gzip, deflate',
         'accept-language': 'en,mr;q=0.9',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'}
-
     req = requests.get(url, headers=headers, timeout=5, verify=False)
     print(req.status_code)
     soup = BeautifulSoup(req.content, 'html.parser')
     lst = []
     lst2 = []
     lst3 = []
-    fnl_lst = []
     counting = 1
     for x in soup.body.find_all(class_="bUshh o csemS"):
         listed_title = str(counting) + ". " + slicer(x.text, " ")
@@ -154,9 +146,7 @@ def get_things_to_do(url):
             break
     dct = {lst[i]: lst2[i] for i in range(len(lst))}
     dct["hidden"] = lst3
-
-    for i in range(len(lst)):
-        fnl_lst.append({lst[i]: lst2[i]})
+    fnl_lst = [{lst[i]: lst2[i]} for i in range(len(lst))]
     return dct, fnl_lst, lst
 
 
@@ -177,29 +167,31 @@ def get_activity_page(url, city):
         dct["description"] = soup.body.find(class_="pIRBV _T KRIav").text
     except:
         dct["description"] = "No Description Available"
-    x = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr bTBvn")
-    for i in x:
-        if city in str(i.text):
-            dct["address"] = i.text
 
-    xxx = soup.find_all(class_="dIDBU MJ")
-    for i in xxx:
-        if city in str(i.text):
-            txt = i.text
-            if "Address" in txt:
-                dct["address"] = txt[7:]
-            else:
-                dct["address"] = i.text
-    xx = soup.find_all(class_="WlYyy diXIH brhTq bQCoY")
+    addresses = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr bTBvn")
+    for address in addresses:
+        if city in str(address.text):
+            dct["address"] = address.text
+
+    validate_addresses = soup.find_all(class_="dIDBU MJ")
+    for address in validate_addresses:
+        address = address.text
+        if city in str(address):
+            dct["address"] = address[7:] if "Address" in address else address
+
     try:
+        """We only do this because there is possibility dct["address"] !=, so don't overwrite"""
         if dct["address"] == "How the site works":
             dct["address"] = "Not Available"
     except:
         dct["address"] = "Not Available"
-    for i in xx:
-        if "/" in i.text:
+
+
+    rating_star = soup.find_all(class_="WlYyy diXIH brhTq bQCoY")
+    for rating in rating_star:
+        if "/" in rating.text:
             try:
-                dct["rating"] = slicer(slicer(str(i.text), ":"), ":")
+                dct["rating"] = slicer(slicer(str(rating.text), ":"), ":")
             except:
                 print("couldnt add ratings")
     try:
@@ -213,10 +205,10 @@ def get_activity_page(url, city):
         dct["title"] = "Not Available"
         print("couldnt add title")
 
-    t = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr")
-    for i in t:
-        if "now" in i.text:
-            dct["open/close"] = i.text
+    open_hours = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr")
+    for hours in open_hours:
+        if "now" in hours.text:
+            dct["open/close"] = hours.text
     try:
         dct["reviewamount"] = soup.find(class_="WlYyy diXIH bGusc dDKKM").text
     except:
@@ -246,16 +238,10 @@ def get_activity_page(url, city):
             continue
         user["name"] = userinfo.find(class_="WlYyy cPsXC dTqpp").text
         for i in userinfo:
-            #(print(count, i.text))
-            if count == 4 and len(i.text) >= 30:
-                user["review"] = i.text[:-9]
-            if count == 5 and len(i.text) >= 30:
-                user["review"] = i.text[:-9]
-            if count == 6 and "Written" in i.text:
-                user["date"] = slicer_after(i.text, "This")
-            if count == 7 and "Written" in i.text and i.text != "" :
-                user["date"] = slicer_after(i.text, "This")
-            if count == 8 and "Written" in i.text:
+            line = i.text
+            if count in (4, 5) and len(line) >= 30:
+                user["review"] = line[:-9]
+            if count in (6, 7, 8) and "Written" in line and line != "":
                 user["date"] = slicer_after(i.text, "This")
             count += 1
         dct[user_num] = user
@@ -265,22 +251,23 @@ def get_activity_page(url, city):
 
 
 def slicer(s, substr):
+    """Slice string before given substr"""
     index = s.find(substr)
     if index != -1:
         return s[index+1:]
 
 
-def slicer_chars(s):
-    for i, c in enumerate(s):
-        if c.isdigit():
-            new_str = s[i:]
-            return new_str
-    return s
-
-
 def slicer_after(s, substr):
+    """Slice everything after given substr"""
     index = s.find(substr)
     if index != -1:
         return s[:index]
 
 
+def slicer_chars(s):
+    """Slice string up to the first number, if no number, return back string"""
+    for i, c in enumerate(s):
+        if c.isdigit():
+            new_str = s[i:]
+            return new_str
+    return s

@@ -91,9 +91,8 @@ def reviews_API(review_id=None, name=None, review_date=None, review=None, url=No
 def home():
     """Home Page"""
     supBot = get_support_variables()
-    if request.method == "POST":
-        if request.form["support_submit"] != "": # user submitted from supportBot
-            update_support_variables(supBot)
+    if request.method == "POST" and request.form["support_submit"] != "":
+        update_support_variables(supBot)
     return render_template("index.html", supBot=supBot)
 
 
@@ -105,7 +104,7 @@ def owned_activities():
         print(request.form)
         if request.form["action"] == "delete":  # if user presses delete icon
             requests.delete(f"http://127.0.0.1:5000/activities/{request.form['ID']}")
-        elif request.form["action"] == "go_to_activity": # go straight to activity page
+        elif request.form["action"] == "go_to_activity":  # go straight to activity page
             activity = requests.get(f"http://127.0.0.1:5000/activities/{request.form['ID']}").json()
             return redirect(url_for("activity", city=activity["city"], state=activity["state"], url=activity["url"]))
         elif request.form["support_submit"] != "":
@@ -213,7 +212,7 @@ def activity(url, city, state):
     sql = f"SELECT * FROM user_reviews WHERE url = '{new_url}'"  # grabs all user_reviews related to the activity
     update_dct_reviews(dct, sql_SELECT(sql))
     if not mateservice:
-        # mages = call_teammate_service(dct["title"])
+        # images = call_teammate_service(dct["title"])
         pass
     images = {"img1": None, "img2": None, "img3": None}  # TEMP CODE
     return render_template("activity.html", dct=dct, city=city, state=state, images=images, supBot=supBot)

@@ -12,16 +12,10 @@ def tuple_from_data(dct, city, state, url):
     """Turn dictionary data into tuple"""
     calc_ratings(dct)
     title = dct["title"]
-    try:
-        address = dct["address"]
-    except:
-        address = "Not Available"
     reviewAmount = dct["reviewamount"]
     rating = dct["rating"]
-    try:
-        description = dct["description"]
-    except:
-        description = "Not Available"
+    address = dct["address"] if "address" in dct else "Not Available"
+    description = dct["description"] if "description" in dct else "Not Available"
     return title, address, reviewAmount, rating, description, city, state, url
 
 
@@ -32,12 +26,9 @@ def calc_ratings(dct):
     star3 = int(dct["rating3"].replace(",", ""))
     star2 = int(dct["rating2"].replace(",", ""))
     star1 = int(dct["rating1"].replace(",", ""))
-
     score_total = (star5*5) + (star4*4) + (star3*3) + (star2*2) + star1
     response_total = star5 + star4 + star3 + star2 + star1
-    tmp = {"rating": round(score_total/response_total, 2)}
-    dct.update(tmp)
-    return
+    dct.update({"rating": round(score_total/response_total, 2)})
 
 
 def reverse_data(dct, lst, lst_title):
@@ -70,10 +61,10 @@ def get_image(img_url, num):
     file.write(response.content)
     file.close()
 
-    imm = Image.open(f"img{num}.jpg")
+    imm = Image.open(path)
     new_image = imm.resize((190, 190))
-    new_image.save(f'img{num}.jpg')
-    im = Image.open(f"img{num}.jpg")
+    new_image.save(path)
+    im = Image.open(path)
     data = io.BytesIO()
     im.save(data, "JPEG")
     encoded_img = base64.b64encode(data.getvalue())
@@ -82,6 +73,7 @@ def get_image(img_url, num):
 
 
 def get_image_from_form():
+    """If page refreshes, grab the current images rather than sending another request for it"""
     images = {}
     images["img1"] = request.form["img1"]
     images["img2"] = request.form["img2"]
@@ -90,6 +82,7 @@ def get_image_from_form():
 
 
 def update_dct_reviews(dct, result):
+    """If there are local user reviews, use those over TripAdvisor's reviews"""
     if len(result) >= 1:
         dct["user3"] = dct["user2"]
         dct["user2"] = dct["user1"]
