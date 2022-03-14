@@ -21,14 +21,17 @@ def tuple_from_data(dct, city, state, url):
 
 def calc_ratings(dct):
     """calculates the rankings based on reviews because tripadvisor rounds too much"""
-    star5 = int(dct["rating5"].replace(",", ""))
-    star4 = int(dct["rating4"].replace(",", ""))
-    star3 = int(dct["rating3"].replace(",", ""))
-    star2 = int(dct["rating2"].replace(",", ""))
-    star1 = int(dct["rating1"].replace(",", ""))
-    score_total = (star5*5) + (star4*4) + (star3*3) + (star2*2) + star1
-    response_total = star5 + star4 + star3 + star2 + star1
-    dct.update({"rating": round(score_total/response_total, 2)})
+    try:
+        star5 = int(dct["rating5"].replace(",", ""))
+        star4 = int(dct["rating4"].replace(",", ""))
+        star3 = int(dct["rating3"].replace(",", ""))
+        star2 = int(dct["rating2"].replace(",", ""))
+        star1 = int(dct["rating1"].replace(",", ""))
+        score_total = (star5*5) + (star4*4) + (star3*3) + (star2*2) + star1
+        response_total = star5 + star4 + star3 + star2 + star1
+        dct.update({"rating": round(score_total/response_total, 2)})
+    except:
+        print("couldn't calculate ratings")
 
 
 def reverse_data(dct, lst, lst_title):

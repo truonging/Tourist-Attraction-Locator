@@ -21,32 +21,25 @@ def activities_API(activity_id=None, rating=None, title=None, address=None, revi
     """REST API for activities data"""
     if request.method == "GET":
         if not activity_id:  # READ all activities
-            sql = "SELECT * FROM activities"
-            return jsonify(sql_SELECT(sql)), 200
+            return jsonify(sql_SELECT("SELECT * FROM activities")), 200
         else:  # READ single activity
-            sql = f"SELECT * FROM activities WHERE ID={activity_id}"
-            return jsonify(sql_SELECT(sql, single=True)), 200
+            return jsonify(sql_SELECT(f"SELECT * FROM activities WHERE ID={activity_id}", single=True)), 200
 
     elif request.method == "POST":  # CREATE new single activity
         sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-        sql2 = "SELECT * FROM activities ORDER BY ID DESC LIMIT 1;"
         if title is None:
             title, address, reviewAmount, rating, description, city, state, url = "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh"
         sql_INSERT(sql, (title, address, reviewAmount, rating, description, city, state, url))
-        return jsonify(sql_SELECT(sql2, single=True)), 201
+        return jsonify(sql_SELECT("SELECT * FROM activities ORDER BY ID DESC LIMIT 1;", single=True)), 201
 
     elif request.method == "PATCH":  # UPDATE single activity
         sql = f"UPDATE activities SET title='{title}', address='{address}', reviewAmount='{reviewAmount}', rating='{rating}', description='{description}', city='{city}', state='{state}', url='{url}' WHERE ID={activity_id}"
-        sql2 = f"SELECT * FROM activities WHERE ID={activity_id}"
         sql_UPDATE(sql)
-        return jsonify(sql_SELECT(sql2, single=True)), 200
+        return jsonify(sql_SELECT(f"SELECT * FROM activities WHERE ID={activity_id}", single=True)), 200
 
     elif request.method == "DELETE":  # DELETE single activity
-        sql = f"DELETE FROM activities WHERE ID = '{activity_id}'"
-        sql2 = f"SELECT * FROM activities WHERE ID={activity_id}"
-        result = sql_SELECT(sql2, single=True)
-        sql_DELETE(sql)
-        return jsonify(result), 200
+        sql_DELETE(f"DELETE FROM activities WHERE ID = '{activity_id}'")
+        return jsonify(sql_SELECT(f"SELECT * FROM activities WHERE ID={activity_id}", single=True)), 200
 
 
 @app.route("/reviews/", methods=["GET", "POST"])
@@ -57,41 +50,36 @@ def reviews_API(review_id=None, name=None, review_date=None, review=None, url=No
     """REST API for reviews data"""
     if request.method == "GET":
         if not review_id:  # READ all user_reviews
-            sql = "SELECT * FROM user_reviews"
-            return jsonify(sql_SELECT(sql)), 200
+            return jsonify(sql_SELECT("SELECT * FROM user_reviews")), 200
         else:  # READ single user_review
-            sql = f"SELECT * FROM user_reviews WHERE ID={review_id}"
-            return jsonify(sql_SELECT(sql, single=True)), 200
+            return jsonify(sql_SELECT(f"SELECT * FROM user_reviews WHERE ID={review_id}", single=True)), 200
 
     elif request.method == "POST":  # CREATE single user_review
         sql = "INSERT INTO user_reviews (name, review_date, review, url) VALUES (%s,%s,%s,%s)"
-        sql2 = "SELECT * FROM user_reviews ORDER BY ID DESC LIMIT 1;"
-        if name is None:
+        if not name:
             name = review_date = review = url = "yahhh"
         if url[0] == "A":
-            url = "https://www.tripadvisor.com/" + url
+            url = f"https://www.tripadvisor.com/{url}"
         sql_INSERT(sql, (name, review_date, review, url))
-        return jsonify(sql_SELECT(sql2, single=True)), 201
+        return jsonify(sql_SELECT("SELECT * FROM user_reviews ORDER BY ID DESC LIMIT 1;", single=True)), 201
 
     elif request.method == "PATCH":  # UPDATE single user_review
         sql = f"UPDATE user_reviews SET name='{name}', review_date='{review_date}', review='{review}', url='{url}' WHERE ID={review_id}"
-        sql2 = f"SELECT * FROM user_reviews WHERE ID={review_id}"
         sql_UPDATE(sql)
-        return jsonify(sql_SELECT(sql2, single=True)), 200
+        return jsonify(sql_SELECT(f"SELECT * FROM user_reviews WHERE ID={review_id}", single=True)), 200
 
     elif request.method == "DELETE":  # DELETE single user_review
         sql = f"DELETE FROM user_reviews WHERE ID = '{review_id}'"
         sql2 = f"SELECT * FROM user_reviews WHERE ID={review_id}"
-        result = sql_SELECT(sql2, single=True)
         sql_DELETE(sql)
-        return jsonify(result), 200
+        return jsonify(sql_SELECT(sql2, single=True)), 200
 
 
 @app.route("/", methods=["POST", "GET"])
 def home():
     """Home Page"""
     supBot = get_support_variables()
-    if request.method == "POST" and request.form["support_submit"] != "":
+    if request.method == "POST" and request.form["support_submit"]:
         update_support_variables(supBot)
     return render_template("index.html", supBot=supBot)
 
@@ -107,7 +95,7 @@ def owned_activities():
         elif request.form["action"] == "go_to_activity":  # go straight to activity page
             activity = requests.get(f"http://127.0.0.1:5000/activities/{request.form['ID']}").json()
             return redirect(url_for("activity", city=activity["city"], state=activity["state"], url=activity["url"]))
-        elif request.form["support_submit"] != "":
+        elif request.form["support_submit"]:
             update_support_variables(supBot)
     activities = requests.get("http://127.0.0.1:5000/activities/").json()
     return render_template("owned_activities.html", database=activities, supBot=supBot)
@@ -132,13 +120,18 @@ def results(state, city, sort):
             return next_page(data, "2")
         if request.form["sort_by"] == "True":
             return sort_page(data)
-        elif request.form["support_submit"] != "":
-            if request.form["support_submit"] == "False":
-                return loading_page(data)
-            else:
+        elif request.form["support_submit"]:
+            if request.form["support_submit"] != "False":  # then is user input search
                 update_support_variables(supBot)
                 return result_page(data, supBot)
+            else:
+                return loading_page(data)
     return result_page(data, supBot)
+
+# request.form["support_submit"] checks whether input field is "", if its not empty, if the str says False, load page
+# else, the str can only then be the user input to search, so return to result page. Very very ugly practice
+# form isn't trying to test whether the field is True/False
+# but whether the str characters happen to be in the order False.
 
 
 @app.route("/results/Page_2/<state>_<city>_<sort>", methods=["POST", "GET"])
@@ -151,12 +144,12 @@ def results2(state, city, sort):
             return next_page(data, "3")
         if request.form["sort_by"] == "True":
             return sort_page(data)
-        elif request.form["support_submit"] != "":
-            if request.form["support_submit"] == "False":
-                return loading_page(data)
-            else:
+        elif request.form["support_submit"]:
+            if request.form["support_submit"] != "False":
                 update_support_variables(supBot)
                 return result_page(data, supBot)
+            else:
+                return loading_page(data)
     return result_page(data, supBot)
 
 
@@ -168,12 +161,12 @@ def results3(state, city, sort):
         print(request.form)
         if request.form["sort_by"] == "True":
             return sort_page(data)
-        elif request.form["support_submit"] != "":
-            if request.form["support_submit"] == "False":
-                return loading_page(data)
-            else:
+        elif request.form["support_submit"]:
+            if request.form["support_submit"] != "False":
                 update_support_variables(supBot)
                 return result_page(data, supBot)
+            else:
+                return loading_page(data)
     return result_page(data, supBot)
 
 
@@ -188,7 +181,7 @@ def activity(url, city, state):
     """Activity Page after selecting an activity from the list"""
     mateservice = False
     supBot = get_support_variables()
-    new_url = "https://www.tripadvisor.com/" + url
+    new_url = f"https://www.tripadvisor.com/{url}"
     dct = get_activity_page(new_url, city)  # calls scraper on tripadvisor and grabs all relevant info to put into dct
     if request.method == "POST":
         print(request.form)
@@ -198,17 +191,13 @@ def activity(url, city, state):
             title, address, reviewAmount, rating, description, city, state, url = tuple_from_data(dct, city, state, url)
             requests.post(f"http://127.0.0.1:5000/activities/post/{title}/{address}/{reviewAmount}/{rating}/{description}/{city}/{state}/{url}")
         elif request.form["write_review"] == "True":  # if user writes a review
-            name = "Anonymous" if request.form["name"] == "" else request.form["name"]
+            name = request.form["name"] if request.form["name"] else "Anonymous"
             review_date = "Written " + date.today().strftime("%B %d, %Y")
             requests.post(f"http://127.0.0.1:5000/reviews/post/{name}/{review_date}/{request.form['review']}/{url}")
-        elif request.form["support_submit"] != "":
-            if request.form["support_submit"] != "False":
-                update_support_variables(supBot)
-    try:
-        calc_ratings(dct)
-    except:
-        print("couldn't calc_ratings")
+        elif request.form["support_submit"] and request.form["support_submit"] != "False":
+            update_support_variables(supBot)
 
+    calc_ratings(dct)
     sql = f"SELECT * FROM user_reviews WHERE url = '{new_url}'"  # grabs all user_reviews related to the activity
     update_dct_reviews(dct, sql_SELECT(sql))
     if not mateservice:
@@ -224,21 +213,14 @@ def activity(url, city, state):
 def next_page(data, num):
     """Loads next page depending on if user clicked sort button or not"""
     state, city, sort, result = data
-    result = ''.join([i for i in result if not i.isdigit()])
-    result = result + num
-    if sort == "False":
-        return redirect(url_for(result, city=city, state=state, sort="False"))
-    if sort == "True":
-        return redirect(url_for(result, city=city, state=state, sort="True"))
+    result = ''.join([i for i in result if not i.isdigit()]) + num
+    return redirect(url_for(result, city=city, state=state, sort=sort))
 
 
 def sort_page(data):
     """Loads current page depending if user clicked sort button or not"""
     state, city, sort, result = data
-    if sort == "False":
-        return redirect(url_for(result, state=state, city=city, sort="True"))
-    if sort == "True":
-        return redirect(url_for(result, state=state, city=city, sort="False"))
+    return redirect(url_for(result, state=state, city=city, sort=sort))
 
 
 def loading_page(data):
@@ -254,12 +236,8 @@ def result_page(data, supBot):
     """ get Tripadvisor url after sending in state/city to google and getting the results, grabs "Things to do" list
     and return it as a dictionary with activity:url key,value"""
     state, city, sort, result = data
-    if supBot["start_support"] == "False":
-        url = get_url(state, city)
-        dct, lst, lst_title = get_things_to_do(url)
-    else:
-        dct, lst, lst_title = get_things_to_do(get_url(state, city))
-    result = result + ".html"
+    result += ".html"
+    dct, lst, lst_title = get_things_to_do(get_url(state, city))
     if sort == "True":
         dct, lst, lst_title = reverse_data(dct, lst, lst_title)
     return render_template(result, dct=dct, lst=lst, lst_title=lst_title, supBot=supBot)
