@@ -2,7 +2,7 @@ import mysql.connector
 
 
 def sql_SELECT(sql, single=None, is_tuple=None):
-    """SELECT MySQL using query"""
+    """SELECT MySQL using sql"""
     mydb = connect_mysql()
     if is_tuple:
         mycursor = mydb.cursor()
@@ -13,17 +13,14 @@ def sql_SELECT(sql, single=None, is_tuple=None):
         return city, state, url
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(sql)
-    if single:  # if SELECT only one item
-        result = mycursor.fetchone()
-    else:  # if SELECT all
-        result = mycursor.fetchall()
+    result = mycursor.fetchone() if single else mycursor.fetchall()  # grab one value or all values
     mycursor.close()
     mydb.close()
     return result
 
 
 def sql_INSERT(sql, values):
-    """INSERT into MySQL using query and values"""
+    """INSERT into MySQL using sql and values"""
     mydb = connect_mysql()
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(sql, values)
@@ -34,7 +31,7 @@ def sql_INSERT(sql, values):
 
 
 def sql_UPDATE(sql):
-    """UPDATE MySQL using query"""
+    """UPDATE MySQL using sql"""
     mydb = connect_mysql()
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(sql)
@@ -60,6 +57,6 @@ def connect_mysql():
     mydb = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="",
+        password="Rtruong3990",
         database="361_project")
     return mydb
