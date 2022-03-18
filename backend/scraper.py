@@ -128,7 +128,6 @@ def get_things_to_do(url):
     req = requests.get(url, headers=headers, timeout=5, verify=False)
     print(req.status_code)
     soup = BeautifulSoup(req.content, 'html.parser')
-    #lst_activity = [f"{count+1}. {slicer(activity.text, ' ')}" for count, activity in enumerate(soup.body.find_all(class_="bUshh o csemS"))]
     lst_activity = [f"{count + 1}. {slicer(activity.text, ' ')}" for count, activity in enumerate(islice(soup.body.find_all(class_="bUshh o csemS"), 15))]
     lst_href = [activity['href'] for activity in soup.body.find_all(target="_blank", class_="FmrIP _R w _Z P0 M0 Gm ddFHE")]
     dct = {lst_activity[i]: lst_href[i] for i in range(len(lst_activity))}
@@ -137,107 +136,6 @@ def get_things_to_do(url):
 
 
 def get_activity_page(url, city):
-    """Scrapes tripadvisor for title, open hours, open/close, address, description, ratings, reviews"""
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'accept': '*/*',
-        'accept-encoding': 'gzip, deflate',
-        'accept-language': 'en,mr;q=0.9',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'}
-    req = requests.get(url, headers=headers, timeout=5, verify=False)
-    soup = BeautifulSoup(req.content, 'html.parser')
-    dct = {}
-    try:
-        dct["description"] = soup.body.find(class_="pIRBV _T KRIav").text
-    except:
-        dct["description"] = "No Description Available"
-
-    addresses = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr bTBvn")
-    for address in addresses:
-        if city in str(address.text):
-            dct["address"] = address.text
-
-    validate_addresses = soup.find_all(class_="dIDBU MJ")
-    for address in validate_addresses:
-        address = address.text
-        if city in str(address):
-            dct["address"] = address[7:] if "Address" in address else address
-
-    try:
-        """We only do this because there is possibility dct["address"] !=, so don't overwrite"""
-        if dct["address"] == "How the site works":
-            dct["address"] = "Not Available"
-    except:
-        dct["address"] = "Not Available"
-
-
-    rating_star = soup.find_all(class_="WlYyy diXIH brhTq bQCoY")
-    for rating in rating_star:
-        if "/" in rating.text:
-            try:
-                dct["rating"] = slicer(slicer(str(rating.text), ":"), ":")
-            except:
-                print("couldnt add ratings")
-    try:
-        dct["hours"] = soup.find(class_="cOXcJ").text
-    except:
-        print("couldnt add hours")
-        dct["hours"] = "Not Available"
-    try:
-        dct["title"] = soup.find(class_="Xewee").text
-    except:
-        dct["title"] = "Not Available"
-        print("couldnt add title")
-
-    open_hours = soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr")
-    for hours in open_hours:
-        if "now" in hours.text:
-            dct["open/close"] = hours.text
-    try:
-        dct["reviewamount"] = soup.find(class_="WlYyy diXIH bGusc dDKKM").text
-    except:
-        print("coudlnt add reviewamount")
-
-    ratings = soup.find_all(class_="cLUvi")
-    try:
-        dct["rating5"] = slicer_chars(ratings[0].text)
-        dct["rating4"] = slicer_chars(ratings[1].text)
-        dct["rating3"] = slicer_chars(ratings[2].text)
-        dct["rating2"] = slicer_chars(ratings[3].text)
-        dct["rating1"] = slicer_chars(ratings[4].text)
-    except:
-        print("couldnt add ratings 1-5")
-
-    for num in range(1, 4):
-        user_num = "user" + str(num)
-        count = 0
-        user = {}
-        try:
-            userinfo = soup.find_all(class_="ffbzW _c")[num-1]
-        except:
-            user["review"] = "None"
-            user["date"] = "None"
-            count += 1
-            dct[user_num] = user
-            continue
-        user["name"] = userinfo.find(class_="WlYyy cPsXC dTqpp").text
-        for i in userinfo:
-            line = i.text
-            if count in (3, 4, 5) and len(line) >= 30 and line[0:7] != "Written":
-                user["review"] = line[:-9]
-            if count in (6, 7, 8) and "Written" in line and line != "":
-                user["date"] = slicer_after(i.text, "This")
-            count += 1
-        dct[user_num] = user
-
-    if dct["description"] == dct["user1"]["review"]:
-        dct["description"] = "Not Available"
-    return dct
-
-
-def get_activity_page2(url, city):
     """Scrapes tripadvisor for title, open hours, open/close, address, description, ratings, reviews"""
     headers = {
         'Access-Control-Allow-Origin': '*',
@@ -261,7 +159,6 @@ def get_activity_page2(url, city):
         except:
             dct[key] = "Not Available"
             print(f"could not find {key}")
-
 
     for address in soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr bTBvn"):
         if city in str(address.text):
@@ -315,7 +212,7 @@ def get_activity_page2(url, city):
         user["name"] = userinfo.find(class_="WlYyy cPsXC dTqpp").text
         for i in userinfo:
             line = i.text
-            if count in (4, 5) and len(line) >= 30:
+            if count in (3, 4, 5) and len(line) >= 30 and line[0:7] != "Written":
                 user["review"] = line[:-9]
             if count in (6, 7, 8) and "Written" in line and line != "":
                 user["date"] = slicer_after(i.text, "This")

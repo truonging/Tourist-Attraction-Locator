@@ -27,8 +27,6 @@ def activities_API(activity_id=None, rating=None, title=None, address=None, revi
 
     elif request.method == "POST":  # CREATE new single activity
         sql = "INSERT IGNORE INTO activities (title, address, reviewAmount, rating, description, city, state, url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-        #if title is None:
-        #    title, address, reviewAmount, rating, description, city, state, url = "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh", "Uhhhhh"
         sql_INSERT(sql, (title, address, reviewAmount, rating, description, city, state, url))
         return jsonify(sql_SELECT("SELECT * FROM activities ORDER BY ID DESC LIMIT 1;", single=True)), 201
 
@@ -56,8 +54,6 @@ def reviews_API(review_id=None, name=None, review_date=None, review=None, url=No
 
     elif request.method == "POST":  # CREATE single user_review
         sql = "INSERT INTO user_reviews (name, review_date, review, url) VALUES (%s,%s,%s,%s)"
-        #if not name:
-           #name = review_date = review = url = "yahhh"
         if url[0] == "A":
             url = f"https://www.tripadvisor.com/{url}"
         sql_INSERT(sql, (name, review_date, review, url))
@@ -186,7 +182,6 @@ def activity(url, city, state):
     if request.method == "POST":
         print(request.form)
         mateservice = True
-        #images = get_image_from_form()
         if request.form["save_activity"] == "True":  # if user wants to save activity
             title, address, reviewAmount, rating, description, city, state, url = tuple_from_data(dct, city, state, url)
             requests.post(f"http://127.0.0.1:5000/activities/post/{title}/{address}/{reviewAmount}/{rating}/{description}/{city}/{state}/{url}")
@@ -200,11 +195,8 @@ def activity(url, city, state):
     calc_ratings(dct)
     sql = f"SELECT * FROM user_reviews WHERE url = '{new_url}'"  # grabs all user_reviews related to the activity
     update_dct_reviews(dct, sql_SELECT(sql))
-    #if not mateservice:
-    #    images = call_teammate_service(dct["title"])
-    #images = get_image_from_form() if mateservice else call_teammate_service(dct["title"])
+    images = get_image_from_form() if mateservice else call_teammate_service(dct["title"])
 
-    images = {"img1": None, "img2": None, "img3": None}  # TEMP CODE
     return render_template("activity.html", dct=dct, city=city, state=state, images=images, supBot=supBot)
 
 
