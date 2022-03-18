@@ -2,6 +2,7 @@ from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 import requests
 import urllib
+from itertools import islice
 
 
 def get_source(url):
@@ -35,8 +36,8 @@ def scrape_google(query):
 def get_url(state, city):
     """Grabs the right tripadvisor url that leads to "To do page" and not the 2nd page url"""
     links = []
-    query = "https://www.tripadvisor.com/Attractions " + state + " " + city
-    subquery = city + " " + state
+    query = f"https://www.tripadvisor.com/Attractions {state} {city}"
+    subquery = f"{city} {state}"
 
     for link in scrape_google(query):
         if "https://www.tripadvisor.com/Attractions" in link:
@@ -127,11 +128,12 @@ def get_things_to_do(url):
     req = requests.get(url, headers=headers, timeout=5, verify=False)
     print(req.status_code)
     soup = BeautifulSoup(req.content, 'html.parser')
-    lst1 = [f"{count+1}. {slicer(x.text, ' ')}" for count, x in enumerate(soup.body.find_all(class_="bUshh o csemS"))]
-    lst2 = [x['href'] for x in soup.body.find_all(target="_blank", class_="FmrIP _R w _Z P0 M0 Gm ddFHE")]
-    dct = {lst1[i]: lst2[i] for i in range(len(lst1))}
-    fnl_lst = [{lst1[i]: lst2[i]} for i in range(len(lst1))]
-    return dct, fnl_lst, lst1
+    #lst_activity = [f"{count+1}. {slicer(activity.text, ' ')}" for count, activity in enumerate(soup.body.find_all(class_="bUshh o csemS"))]
+    lst_activity = [f"{count + 1}. {slicer(activity.text, ' ')}" for count, activity in enumerate(islice(soup.body.find_all(class_="bUshh o csemS"), 15))]
+    lst_href = [activity['href'] for activity in soup.body.find_all(target="_blank", class_="FmrIP _R w _Z P0 M0 Gm ddFHE")]
+    dct = {lst_activity[i]: lst_href[i] for i in range(len(lst_activity))}
+    fnl_lst = [{lst_activity[i]: lst_href[i]} for i in range(len(lst_activity))]
+    return dct, fnl_lst, lst_activity
 
 
 def get_activity_page(url, city):
@@ -223,12 +225,13 @@ def get_activity_page(url, city):
         user["name"] = userinfo.find(class_="WlYyy cPsXC dTqpp").text
         for i in userinfo:
             line = i.text
-            if count in (4, 5) and len(line) >= 30:
+            if count in (3, 4, 5) and len(line) >= 30 and line[0:7] != "Written":
                 user["review"] = line[:-9]
             if count in (6, 7, 8) and "Written" in line and line != "":
                 user["date"] = slicer_after(i.text, "This")
             count += 1
         dct[user_num] = user
+
     if dct["description"] == dct["user1"]["review"]:
         dct["description"] = "Not Available"
     return dct
@@ -252,15 +255,13 @@ def get_activity_page2(url, city):
                   "reviewamount": "WlYyy diXIH bGusc dDKKM"}
     dct = {}
     for key, value in scrape_dct.items():
-        scraper = soup.body.find(class_=value).text if key == "description" else soup.find(class_=value).text
+        scraper = soup.find(class_=value).text if key != "description" else soup.body.find(class_=value).text
         try:
             dct[key] = scraper
         except:
             dct[key] = "Not Available"
             print(f"could not find {key}")
 
-    if dct["description"] == dct["user1"]["review"]:
-        dct["description"] = "Not Available"
 
     for address in soup.find_all(class_="bfQwA _G B- _S _T c G_ P0 ddFHE cnvzr bTBvn"):
         if city in str(address.text):
@@ -320,6 +321,9 @@ def get_activity_page2(url, city):
                 user["date"] = slicer_after(i.text, "This")
             count += 1
         dct[user_num] = user
+
+    if dct["description"] == dct["user1"]["review"]:
+        dct["description"] = "Not Available"
     return dct
 
 

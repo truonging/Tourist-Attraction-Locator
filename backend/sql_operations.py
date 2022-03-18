@@ -13,7 +13,7 @@ def sql_SELECT(sql, single=None, is_tuple=None):
         return city, state, url
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(sql)
-    result = mycursor.fetchone() if single else mycursor.fetchall()  # grab one value or all values
+    result = mycursor.fetchone() if single else mycursor.fetchall()
     mycursor.close()
     mydb.close()
     return result
@@ -57,6 +57,6 @@ def connect_mysql():
     mydb = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Rtruong3990",
+        password="",
         database="361_project")
     return mydb
